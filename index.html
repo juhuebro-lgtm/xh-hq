@@ -1,0 +1,276 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>總部工作台</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#4E3016">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="總部工作台">
+<!-- 先跟各系統主機握手，點卡片時少等一點 -->
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="dns-prefetch" href="https://chimerical-druid-ec181a.netlify.app">
+<link rel="dns-prefetch" href="https://wonderful-chimera-06d8bd.netlify.app">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 字型背景載入，不擋畫面；內文用手機內建字型 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap"></noscript>
+<style>
+/* Layout: 上方品牌漸層（咖啡→霧藍，帶顆粒）放公司名與日期；主系統三張大卡壓在漸層下緣；下方分區放次要連結的細長列 */
+:root{
+  --bg:#f5f1eb; --surface:#fffdfa; --ink:#2b1d10; --muted:#7a6c5e; --line:#e6ded2;
+  --brown:#4E3016; --blue:#94AFD2; --blue-ink:#4a6a94; --brown-soft:#f1e8dd; --blue-soft:#e7eef7; --orange:#E8772E; --orange-ink:#b4541a; --orange-soft:#fcebdc;
+  --f-display:"Noto Serif TC","Songti TC",serif;
+  --f-body:-apple-system,"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  --f-en:"Cormorant Garamond","Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15110d; --surface:#1f1913; --ink:#efe7dc; --muted:#a8998a; --line:#362b21;
+  --brown:#c79f78; --blue:#94AFD2; --blue-ink:#a9c1e0; --brown-soft:#2c2118; --blue-soft:#1d2734; --orange:#E8772E; --orange-ink:#f3a46a; --orange-soft:#33231a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15110d; --surface:#1f1913; --ink:#efe7dc; --muted:#a8998a; --line:#362b21;
+  --brown:#c79f78; --blue:#94AFD2; --blue-ink:#a9c1e0; --brown-soft:#2c2118; --blue-soft:#1d2734; --orange:#E8772E; --orange-ink:#f3a46a; --orange-soft:#33231a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);margin:0}
+
+.hero{position:relative;color:#fff;background:linear-gradient(180deg,#4E3016 0%,#6e5a4a 48%,#94AFD2 100%);overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;opacity:.22;mix-blend-mode:overlay;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.hero-in{position:relative;max-width:880px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-block:34px 92px;display:grid;gap:26px}
+.co{display:flex;align-items:center;gap:12px}
+.seal{width:42px;height:42px;border:1px solid rgba(255,255,255,.7);border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:1.05rem;letter-spacing:.02em;flex:none}
+.co-name{font-family:var(--f-display);font-weight:500;font-size:.95rem;letter-spacing:.18em}
+.co-en{display:block;font-family:var(--f-en);font-style:italic;font-size:.95rem;letter-spacing:.06em;opacity:.8}
+.title{display:grid;gap:6px}
+.title .en{font-family:var(--f-en);font-size:.9rem;letter-spacing:.42em;text-transform:uppercase;opacity:.85}
+.title h1{margin:0;font-family:var(--f-display);font-weight:700;font-size:clamp(2.1rem,7vw,3.1rem);letter-spacing:.14em;line-height:1.2}
+.badge{justify-self:start;font-size:.74rem;letter-spacing:.24em;padding:4px 12px;border:1px solid rgba(255,255,255,.6);border-radius:2px;background:rgba(255,255,255,.08)}
+.date{font-family:var(--f-en);font-style:italic;font-size:1.15rem;opacity:.9;display:flex;gap:12px;align-items:baseline}
+.date span{font-family:var(--f-body);font-style:normal;font-size:.82rem;letter-spacing:.12em;opacity:.85}
+
+.wrap{max-width:880px;margin:-62px auto 0;position:relative;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-bottom:48px;display:grid;gap:34px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid.two{grid-template-columns:repeat(2,1fr)}
+.grid.two .card{min-height:220px}
+.card{position:relative;display:grid;gap:22px;align-content:space-between;min-height:250px;padding:26px 24px 22px;background:var(--surface);border:1px solid var(--line);border-radius:4px;text-decoration:none;color:var(--ink);box-shadow:0 1px 0 rgba(43,29,16,.04),0 18px 40px -24px rgba(43,29,16,.35);transition:transform .25s ease,box-shadow .25s ease}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--accent)}
+a.card:hover{transform:translateY(-3px);box-shadow:0 1px 0 rgba(43,29,16,.04),0 26px 48px -24px rgba(43,29,16,.45)}
+a.card:active{transform:translateY(-1px)}
+.card:focus-visible,.row:focus-visible{outline:2px solid var(--accent,var(--brown));outline-offset:3px}
+.label{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.no{font-family:var(--f-en);font-style:italic;font-size:1rem;color:var(--muted)}
+.store{font-size:.78rem;letter-spacing:.2em;color:var(--accent-ink);background:var(--accent-soft);padding:3px 10px;border-radius:2px}
+.card h2{margin:0;font-family:var(--f-display);font-weight:700;font-size:1.75rem;letter-spacing:.12em}
+.card .en{font-family:var(--f-en);font-size:.95rem;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);margin-top:4px;display:block}
+.foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:14px;font-size:.84rem;color:var(--muted)}
+.arrow{width:36px;height:36px;border-radius:50%;border:1px solid var(--accent);color:var(--accent-ink);display:grid;place-items:center;transition:background .2s,color .2s;flex:none}
+a.card:hover .arrow{background:var(--accent);color:#fff}
+.sb{--accent:var(--orange);--accent-ink:var(--orange-ink);--accent-soft:var(--orange-soft)}
+.zh{--accent:#94AFD2;--accent-ink:var(--blue-ink);--accent-soft:var(--blue-soft)}
+.hq{--accent:#71604f;--accent-ink:var(--ink);--accent-soft:var(--line)}
+.hq::before{background:linear-gradient(90deg,#4E3016,#94AFD2)}
+.card.pending{border-style:dashed;box-shadow:none}
+.card.pending h2{color:var(--muted)}
+.card.pending .arrow{border-style:dashed;font-size:.8rem}
+
+.sec{display:grid;gap:12px}
+.sec-h{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.sec-h h3{margin:0;font-family:var(--f-display);font-weight:700;font-size:1.05rem;letter-spacing:.16em}
+.sec-h i{font-family:var(--f-en);font-size:.95rem;letter-spacing:.12em;color:var(--muted)}
+.rows{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent,var(--brown));border-radius:4px;text-decoration:none;color:var(--ink);transition:border-color .2s,transform .2s}
+a.row:hover{transform:translateX(2px);border-color:var(--accent,var(--brown))}
+.row b{display:block;font-weight:700;font-size:.98rem;letter-spacing:.08em}
+.row small{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+.row .txt{flex:1;min-width:0}
+.row .go{color:var(--muted);font-family:var(--f-en);font-size:1.2rem}
+.row.soon{border-left-style:dashed;background:transparent}
+.row.soon b{color:var(--muted)}
+.tag{font-size:.7rem;letter-spacing:.16em;color:var(--muted);border:1px dashed var(--line);padding:2px 8px;border-radius:2px;white-space:nowrap}
+
+footer{text-align:center;color:var(--muted);font-size:.78rem;letter-spacing:.2em;display:grid;gap:4px;padding-top:6px}
+footer i{font-family:var(--f-en);font-size:.9rem;letter-spacing:.08em}
+footer small{font-size:.72rem;letter-spacing:.12em;opacity:.8}
+
+@media (max-width:800px){.grid{grid-template-columns:1fr 1fr}.grid:not(.two) .hq{grid-column:1/-1;min-height:0}}
+@media (max-width:560px){
+  .hero-in{padding-block:26px 84px}
+  .grid,.grid.two,.rows{grid-template-columns:1fr}
+  .grid:not(.two) .hq{grid-column:auto}
+  .card{min-height:0;gap:18px}
+  .card h2{font-size:1.5rem}
+}
+@media (prefers-reduced-motion:reduce){.card,.arrow,.row{transition:none}a.card:hover,a.card:active,a.row:hover{transform:none}}
+
+.packs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pack{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:4px;padding:16px;display:grid;gap:12px;align-content:start}
+.pack.hq{border-top-color:#71604f}
+.pack-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pack-h b{display:block;font-size:1rem;letter-spacing:.1em}
+.pack-h small{display:block;color:var(--muted);font-size:.78rem;margin-top:2px}
+.copy{flex:none;font:500 .82rem var(--f-body);letter-spacing:.1em;padding:8px 12px;border:1px solid #4E3016;border-radius:4px;background:#4E3016;color:#fff;cursor:pointer;transition:background .2s}
+.copy.done{background:#3d7a4c;border-color:#3d7a4c}
+.pack ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pack li{display:grid;gap:1px;font-size:.84rem}
+.pack li span{color:var(--muted);font-size:.72rem;word-break:break-all;line-height:1.4}
+@media (max-width:800px){.packs{grid-template-columns:1fr}}
+</style></head><body>
+
+<header class="hero"><div class="hero-in">
+  <div class="co">
+    <span id="logoSlot"><span class="seal" aria-hidden="true">宣</span></span>
+    <div><span class="co-name">宣澔餐飲國際有限公司</span><span class="co-en">Xuan Hao Food &amp; Beverage International</span></div>
+  </div>
+  <div class="title">
+    <span class="en">Head Office</span>
+    <h1>總部工作台</h1>
+    <span class="badge">總部專用・請勿外傳</span>
+  </div>
+  <div class="date" id="date">&nbsp;</div>
+</div></header>
+
+<main class="wrap">
+  <div class="grid two">
+    <a class="card sb" href="https://script.google.com/macros/s/AKfycbxxzr_-g3Blutv7BoEewr9GjQlgRAwl8U_nJfBNIcFDtcr3ubwR_2RNZw4X9z7jIKMQzw/exec" target="_blank" rel="noopener">
+      <div class="label"><span class="no">No. 01</span><span class="store">涮吧</span></div>
+      <div><h2>叫貨系統</h2><span class="en">Ordering</span></div>
+      <div class="foot"><span>門市叫貨・央廚後台</span><span class="arrow" aria-hidden="true">→</span></div>
+    </a>
+    <a class="card sb" href="https://script.google.com/macros/s/AKfycby2jIheEVnTsYo2RAWWPwYrY4z-6Ag8Gj6Yn79swwsjVSmFXO8WIaXUeeh-mYyLD4jjvg/exec" target="_blank" rel="noopener">
+      <div class="label"><span class="no">No. 02</span><span class="store">涮吧</span></div>
+      <div><h2>月結貨款</h2><span class="en">Payables</span></div>
+      <div class="foot"><span>貨款・現金支出・零用金</span><span class="arrow" aria-hidden="true">→</span></div>
+    </a>
+    <a class="card zh" href="https://chimerical-druid-ec181a.netlify.app/" target="_blank" rel="noopener">
+      <div class="label"><span class="no">No. 03</span><span class="store">朱輝哥</span></div>
+      <div><h2>候位叫號</h2><span class="en">Queue</span></div>
+      <div class="foot"><span>叫號・取消・今日總計</span><span class="arrow" aria-hidden="true">→</span></div>
+    </a>
+    <a class="card zh" href="https://script.google.com/macros/s/AKfycbwbiDB9Ry71S49kqMWkkMIuEXEftx3mM0QekM-mzycCRWUzkD3iL-a4bFNGz-dJPJw7/exec" target="_blank" rel="noopener">
+      <div class="label"><span class="no">No. 04</span><span class="store">朱輝哥</span></div>
+      <div><h2>月結貨款</h2><span class="en">Payables</span></div>
+      <div class="foot"><span>貨款・現金支出・零用金</span><span class="arrow" aria-hidden="true">→</span></div>
+    </a>
+    <a class="card zh" href="https://script.google.com/macros/s/AKfycbzNCWxD4lz4ENKJPT5Sn25PsphkN4O7kIQpdkqCVRtBLx8_ip9Rf6mYOzbHn-zbIckjZA/exec" target="_blank" rel="noopener">
+      <div class="label"><span class="no">No. 05</span><span class="store">朱輝哥</span></div>
+      <div><h2>月底盤點</h2><span class="en">Stocktake</span></div>
+      <div class="foot"><span>盤點・上次對照・歷史統計</span><span class="arrow" aria-hidden="true">→</span></div>
+    </a>
+    <a class="card hq" href="https://wonderful-chimera-06d8bd.netlify.app/" target="_blank" rel="noopener">
+      <div class="label"><span class="no">No. 06</span><span class="store">兩店共用</span></div>
+      <div><h2>薪勤管理平台</h2><span class="en">Payroll</span></div>
+      <div class="foot"><span>排班・打卡・申請・薪資</span><span class="arrow" aria-hidden="true">→</span></div>
+    </a>
+  </div>
+
+  <section class="sec">
+    <div class="sec-h"><h3>員工與打卡</h3><i>Staff</i></div>
+    <div class="rows">
+    <a class="row zh" href="https://wonderful-chimera-06d8bd.netlify.app/employee.html" target="_blank" rel="noopener"><span class="txt"><b>員工手機頁</b><small>查班表・請假・加班申請</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a class="row zh" href="https://wonderful-chimera-06d8bd.netlify.app/clock.html" target="_blank" rel="noopener"><span class="txt"><b>打卡站</b><small>門市打卡用的畫面</small></span><span class="go" aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h3>使用說明</h3><i>Guides</i></div>
+    <div class="rows">
+    <a class="row hq" href="https://wonderful-chimera-06d8bd.netlify.app/help-hq.html" target="_blank" rel="noopener"><span class="txt"><b>總部使用說明</b><small>薪勤平台・總部操作</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a class="row sb" href="https://wonderful-chimera-06d8bd.netlify.app/help-manager.html" target="_blank" rel="noopener"><span class="txt"><b>店長使用說明</b><small>薪勤平台・店長操作</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a class="row sb" href="https://wonderful-chimera-06d8bd.netlify.app/help-employee.html" target="_blank" rel="noopener"><span class="txt"><b>員工使用說明</b><small>可直接轉給新人看</small></span><span class="go" aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <!-- 試算表（後台）：改人員、廠商、品項時直接開；要有權限的 Google 帳號才打得開 -->
+  <section class="sec">
+    <div class="sec-h"><h3>試算表（後台）</h3><i>Spreadsheets</i></div>
+    <div class="rows">
+    <a class="row sb" href="https://docs.google.com/spreadsheets/d/1qJ355meK49SIOgTTFqnKXl7ObN71nmr9g28qAnYeKy0/edit" target="_blank" rel="noopener"><span class="txt"><b>涮吧・叫貨</b><small>品項・廠商・叫貨紀錄</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a class="row sb" href="https://docs.google.com/spreadsheets/d/1YxLoXBeRqjy1VnQVJMl1jDhKfGD2jPlNZIJOjq7sn54/edit" target="_blank" rel="noopener"><span class="txt"><b>涮吧・月結貨款</b><small>廠商・付現廠商・員工・稅別設定</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a class="row zh" href="https://docs.google.com/spreadsheets/d/1U04pb_qUwppK8fMnX77DViKOT_hHSZe8pI4Vu9mRNtU/edit" target="_blank" rel="noopener"><span class="txt"><b>朱輝哥・月結貨款</b><small>廠商・付現廠商・員工・稅別設定</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a class="row zh" href="https://docs.google.com/spreadsheets/d/1-5BHNUQcCrhlVieNQGhqpx7dyNpnt4vLiM035aQmj0o/edit" target="_blank" rel="noopener"><span class="txt"><b>朱輝哥・月底盤點</b><small>品項・區域・停用・盤點紀錄</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a class="row hq" href="https://docs.google.com/spreadsheets/d/1n3-8W4nZ1Cm6o2LZViVljhCKcGdImXGtO2pGWlCP78Y/edit" target="_blank" rel="noopener"><span class="txt"><b>薪勤平台・員工打卡</b><small>員工・班表・打卡紀錄</small></span><span class="go" aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <!-- 給門市的網址：新人到職時按「複製整段」，直接貼 LINE -->
+  <section class="sec">
+    <div class="sec-h"><h3>給門市的網址</h3><i>Share Links</i></div>
+    <div class="packs">
+    <div class="pack sb">
+      <div class="pack-h"><div><b>涮吧・員工</b><small>貼到涮吧 LINE 群</small></div><button type="button" class="copy" data-i="0">複製整段</button></div>
+      <ul><li><b>叫貨系統</b><span>https://script.google.com/macros/s/AKfycbxxzr_-g3Blutv7BoEewr9GjQlgRAwl8U_nJfBNIcFDtcr3ubwR_2RNZw4X9z7jIKMQzw/exec</span></li><li><b>月結貨款</b><span>https://script.google.com/macros/s/AKfycby2jIheEVnTsYo2RAWWPwYrY4z-6Ag8Gj6Yn79swwsjVSmFXO8WIaXUeeh-mYyLD4jjvg/exec</span></li><li><b>員工手機頁</b><span>https://wonderful-chimera-06d8bd.netlify.app/employee.html</span></li></ul>
+      <textarea class="pack-msg" id="pack0" readonly hidden>【涮吧常用系統】點網址打開後，加到手機桌面，之後點圖示就能用
+叫貨系統：https://script.google.com/macros/s/AKfycbxxzr_-g3Blutv7BoEewr9GjQlgRAwl8U_nJfBNIcFDtcr3ubwR_2RNZw4X9z7jIKMQzw/exec
+月結貨款：https://script.google.com/macros/s/AKfycby2jIheEVnTsYo2RAWWPwYrY4z-6Ag8Gj6Yn79swwsjVSmFXO8WIaXUeeh-mYyLD4jjvg/exec
+員工手機頁：https://wonderful-chimera-06d8bd.netlify.app/employee.html
+
+加到桌面：iPhone 用 Safari 打開 → 下方「分享」→「加入主畫面」；Android 用 Chrome 打開 → 右上「⋮」→「加到主畫面」</textarea>
+    </div>
+    <div class="pack zh">
+      <div class="pack-h"><div><b>朱輝哥・員工</b><small>貼到朱輝哥 LINE 群</small></div><button type="button" class="copy" data-i="1">複製整段</button></div>
+      <ul><li><b>候位叫號</b><span>https://chimerical-druid-ec181a.netlify.app/</span></li><li><b>月結貨款</b><span>https://script.google.com/macros/s/AKfycbwbiDB9Ry71S49kqMWkkMIuEXEftx3mM0QekM-mzycCRWUzkD3iL-a4bFNGz-dJPJw7/exec</span></li><li><b>月底盤點</b><span>https://script.google.com/macros/s/AKfycbzNCWxD4lz4ENKJPT5Sn25PsphkN4O7kIQpdkqCVRtBLx8_ip9Rf6mYOzbHn-zbIckjZA/exec</span></li><li><b>員工手機頁</b><span>https://wonderful-chimera-06d8bd.netlify.app/employee.html</span></li></ul>
+      <textarea class="pack-msg" id="pack1" readonly hidden>【朱輝哥常用系統】點網址打開後，加到手機桌面，之後點圖示就能用
+候位叫號：https://chimerical-druid-ec181a.netlify.app/
+月結貨款：https://script.google.com/macros/s/AKfycbwbiDB9Ry71S49kqMWkkMIuEXEftx3mM0QekM-mzycCRWUzkD3iL-a4bFNGz-dJPJw7/exec
+月底盤點：https://script.google.com/macros/s/AKfycbzNCWxD4lz4ENKJPT5Sn25PsphkN4O7kIQpdkqCVRtBLx8_ip9Rf6mYOzbHn-zbIckjZA/exec
+員工手機頁：https://wonderful-chimera-06d8bd.netlify.app/employee.html
+
+加到桌面：iPhone 用 Safari 打開 → 下方「分享」→「加入主畫面」；Android 用 Chrome 打開 → 右上「⋮」→「加到主畫面」</textarea>
+    </div>
+    <div class="pack hq">
+      <div class="pack-h"><div><b>店長・私訊</b><small>只私訊給店長</small></div><button type="button" class="copy" data-i="2">複製整段</button></div>
+      <ul><li><b>薪勤管理平台</b><span>https://wonderful-chimera-06d8bd.netlify.app/</span></li><li><b>店長使用說明</b><span>https://wonderful-chimera-06d8bd.netlify.app/help-manager.html</span></li></ul>
+      <textarea class="pack-msg" id="pack2" readonly hidden>【店長專用】請加到手機桌面，薪勤平台需要登入
+薪勤管理平台：https://wonderful-chimera-06d8bd.netlify.app/
+店長使用說明：https://wonderful-chimera-06d8bd.netlify.app/help-manager.html
+
+加到桌面：iPhone 用 Safari 打開 → 下方「分享」→「加入主畫面」；Android 用 Chrome 打開 → 右上「⋮」→「加到主畫面」</textarea>
+    </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h3>即將加入</h3><i>Coming Soon</i></div>
+    <div class="rows">
+    <div class="row soon" aria-disabled="true"><span class="txt"><b>客服後台</b><small>客訴拆解室升級：AI 擬稿、人看過才送</small></span><span class="tag">規劃中</span></div>
+    <div class="row soon" aria-disabled="true"><span class="txt"><b>出勤異常通知</b><small>每天列出未打卡、超時未申請</small></span><span class="tag">規劃中</span></div>
+    <div class="row soon" aria-disabled="true"><span class="txt"><b>營運告警＋庫存預警</b><small>異常數字自動提醒</small></span><span class="tag">規劃中</span></div>
+    <div class="row soon" aria-disabled="true"><span class="txt"><b>店務戰情中心</b><small>兩店歷年獲利趨勢</small></span><span class="tag">規劃中</span></div>
+    </div>
+  </section>
+
+  <footer><span>宣澔餐飲國際有限公司</span><i>Xuan Hao Food &amp; Beverage International</i><small>總部版・更新 2026.10.30</small></footer>
+</main>
+
+<script>
+// 收到 logo 後把 data URI 貼進來即可
+const LOGO = "";
+if (LOGO) document.getElementById("logoSlot").innerHTML = '<img src="'+LOGO+'" alt="宣澔餐飲" style="height:42px;display:block">';
+(function(){
+  const W = ["週日","週一","週二","週三","週四","週五","週六"];
+  function tick(){
+    const d = new Date(), p = n => String(n).padStart(2,"0");
+    document.getElementById("date").innerHTML = d.getFullYear()+"."+p(d.getMonth()+1)+"."+p(d.getDate())+' <span>'+W[d.getDay()]+"　"+p(d.getHours())+":"+p(d.getMinutes())+"</span>";
+  }
+  tick(); setInterval(tick, 30000);
+})();
+
+// 給門市的網址：複製整段訊息
+document.querySelectorAll(".copy").forEach(function(b){
+  b.addEventListener("click", function(){
+    const t = document.getElementById("pack"+b.dataset.i).value;
+    function ok(){ b.textContent = "已複製"; b.classList.add("done"); setTimeout(function(){ b.textContent = "複製整段"; b.classList.remove("done"); }, 1800); }
+    function fallback(){ const a = document.createElement("textarea"); a.value = t; a.style.position = "fixed"; a.style.opacity = "0"; document.body.appendChild(a); a.select(); try { document.execCommand("copy"); ok(); } catch (e) { alert(t); } a.remove(); }
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(ok, fallback); else fallback();
+  });
+});
+
+// 可安裝成 App（Chrome 網址列的安裝鈕、Safari「加入 Dock」）
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(function(){});
+</script>
+
+</body></html>
