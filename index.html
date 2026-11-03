@@ -278,6 +278,11 @@ document.querySelectorAll(".copy").forEach(function(b){
 
 // 可安裝成 App（Chrome 網址列的安裝鈕、Safari「加入 Dock」）
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(function(){});
+/* 自動換新版：工作台開著不關時，切回這個分頁／App（離開超過 5 分鐘）或每 1 小時，自己重新整理一次，連結一定是最新的 */
+(function(){var t0=Date.now(),hid=0;
+  document.addEventListener("visibilitychange",function(){if(document.hidden){hid=Date.now()}else if(hid&&Date.now()-hid>300000){location.reload()}});
+  setInterval(function(){if(!document.hidden&&Date.now()-t0>3600000)location.reload()},600000);
+})();
 </script>
 
 </body></html>
