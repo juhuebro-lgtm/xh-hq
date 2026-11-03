@@ -118,6 +118,10 @@ footer small{font-size:.72rem;letter-spacing:.12em;opacity:.8}
 .pack li{display:grid;gap:1px;font-size:.84rem}
 .pack li span{color:var(--muted);font-size:.72rem;word-break:break-all;line-height:1.4}
 @media (max-width:800px){.packs{grid-template-columns:1fr}}
+.huige{position:absolute;right:22px;bottom:80px;width:56px;height:auto;transform:rotate(-8deg);filter:drop-shadow(0 3px 6px rgba(43,29,16,.18));pointer-events:none;transition:transform .25s ease}
+a.card:hover .huige{transform:rotate(4deg) translateY(-3px)}
+@media (max-width:640px){.huige{width:48px;bottom:auto;top:50%;transform:translateY(-50%) rotate(-8deg)}a.card:hover .huige{transform:translateY(-50%) rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.huige{transition:none}}
 </style></head><body>
 
 <header class="hero"><div class="hero-in">
@@ -151,16 +155,19 @@ footer small{font-size:.72rem;letter-spacing:.12em;opacity:.8}
       <div class="foot"><span>盤點・庫存金額・真實成本</span><span class="arrow" aria-hidden="true">→</span></div>
     </a>
     <a class="card zh" href="https://chimerical-druid-ec181a.netlify.app/" target="_blank" rel="noopener">
+      <img class="huige" src="icons/zhuhui-head.png" alt="" width="58" height="58" loading="lazy">
       <div class="label"><span class="no">No. 04</span><span class="store">朱輝哥</span></div>
       <div><h2>候位叫號</h2><span class="en">Queue</span></div>
       <div class="foot"><span>叫號・取消・今日總計</span><span class="arrow" aria-hidden="true">→</span></div>
     </a>
     <a class="card zh" href="https://script.google.com/macros/s/AKfycbwbiDB9Ry71S49kqMWkkMIuEXEftx3mM0QekM-mzycCRWUzkD3iL-a4bFNGz-dJPJw7/exec" target="_blank" rel="noopener">
+      <img class="huige" src="icons/zhuhui-head.png" alt="" width="58" height="58" loading="lazy">
       <div class="label"><span class="no">No. 05</span><span class="store">朱輝哥</span></div>
       <div><h2>月結貨款</h2><span class="en">Payables</span></div>
       <div class="foot"><span>貨款・現金支出・零用金</span><span class="arrow" aria-hidden="true">→</span></div>
     </a>
     <a class="card zh" href="https://script.google.com/macros/s/AKfycbzNCWxD4lz4ENKJPT5Sn25PsphkN4O7kIQpdkqCVRtBLx8_ip9Rf6mYOzbHn-zbIckjZA/exec" target="_blank" rel="noopener">
+      <img class="huige" src="icons/zhuhui-head.png" alt="" width="58" height="58" loading="lazy">
       <div class="label"><span class="no">No. 06</span><span class="store">朱輝哥</span></div>
       <div><h2>月底盤點</h2><span class="en">Stocktake</span></div>
       <div class="foot"><span>盤點・上次對照・歷史統計</span><span class="arrow" aria-hidden="true">→</span></div>
