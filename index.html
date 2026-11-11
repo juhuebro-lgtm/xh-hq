@@ -73,6 +73,8 @@ a.card:hover .arrow{background:var(--accent);color:#fff}
 .zh{--accent:#94AFD2;--accent-ink:var(--blue-ink);--accent-soft:var(--blue-soft)}
 .hq{--accent:#71604f;--accent-ink:var(--ink);--accent-soft:var(--line)}
 .hq::before{background:linear-gradient(90deg,#4E3016,#94AFD2)}
+.dot{position:absolute;top:-11px;right:-11px;z-index:2;min-width:26px;height:26px;padding:0 8px;border-radius:13px;background:#C0392B;color:#fff;font:700 .82rem/26px var(--f-en),sans-serif;text-align:center;box-shadow:0 2px 8px rgba(192,57,43,.4)}
+.dot[hidden]{display:none}
 .card.pending{border-style:dashed;box-shadow:none}
 .card.pending h2{color:var(--muted)}
 .card.pending .arrow{border-style:dashed;font-size:.8rem}
@@ -177,6 +179,12 @@ a.card:hover .huige{transform:rotate(4deg) translateY(-3px)}
       <div><h2>薪勤管理平台</h2><span class="en">Payroll</span></div>
       <div class="foot"><span>排班・打卡・申請・薪資</span><span class="arrow" aria-hidden="true">→</span></div>
     </a>
+    <a class="card hq" id="formCard" href="https://script.google.com/macros/s/AKfycbzezyeonPvpUSGCYjlSSIXodCdsTUMhzIEz5FIjzwJfL5rlPR5rhcc-NJb7cRuhDiRx/exec?page=admin" target="_blank" rel="noopener">
+      <span class="dot" id="formDot" hidden></span>
+      <div class="label"><span class="no">No. 08</span><span class="store">兩店共用</span></div>
+      <div><h2>表單叫貨</h2><span class="en">Forms</span></div>
+      <div class="foot"><span id="formFoot">門市叫表單・出貨・每月統計</span><span class="arrow" aria-hidden="true">→</span></div>
+    </a>
   </div>
 
   <section class="sec">
@@ -226,22 +234,24 @@ a.card:hover .huige{transform:rotate(4deg) translateY(-3px)}
     <div class="packs">
     <div class="pack sb">
       <div class="pack-h"><div><b>涮吧・員工</b><small>貼到涮吧 LINE 群</small></div><button type="button" class="copy" data-i="0">複製整段</button></div>
-      <ul><li><b>叫貨系統</b><span>https://script.google.com/macros/s/AKfycbxxzr_-g3Blutv7BoEewr9GjQlgRAwl8U_nJfBNIcFDtcr3ubwR_2RNZw4X9z7jIKMQzw/exec</span></li><li><b>月結貨款</b><span>https://script.google.com/macros/s/AKfycby2jIheEVnTsYo2RAWWPwYrY4z-6Ag8Gj6Yn79swwsjVSmFXO8WIaXUeeh-mYyLD4jjvg/exec</span></li><li><b>月底盤點</b><span>https://script.google.com/macros/s/AKfycbyYcZ69UNTuwHLsYXW8seoT19zT6qdeRB2BFJamao3dsrYsqdAJEJXHvjnajpyI2OWUlQ/exec</span></li><li><b>員工手機頁</b><span>https://xinju-hr.pages.dev/employee.html</span></li></ul>
+      <ul><li><b>叫貨系統</b><span>https://script.google.com/macros/s/AKfycbxxzr_-g3Blutv7BoEewr9GjQlgRAwl8U_nJfBNIcFDtcr3ubwR_2RNZw4X9z7jIKMQzw/exec</span></li><li><b>月結貨款</b><span>https://script.google.com/macros/s/AKfycby2jIheEVnTsYo2RAWWPwYrY4z-6Ag8Gj6Yn79swwsjVSmFXO8WIaXUeeh-mYyLD4jjvg/exec</span></li><li><b>月底盤點</b><span>https://script.google.com/macros/s/AKfycbyYcZ69UNTuwHLsYXW8seoT19zT6qdeRB2BFJamao3dsrYsqdAJEJXHvjnajpyI2OWUlQ/exec</span></li><li><b>表單叫貨</b><span>https://script.google.com/macros/s/AKfycbzezyeonPvpUSGCYjlSSIXodCdsTUMhzIEz5FIjzwJfL5rlPR5rhcc-NJb7cRuhDiRx/exec?store=%E6%B6%AE%E5%90%A7</span></li><li><b>員工手機頁</b><span>https://xinju-hr.pages.dev/employee.html</span></li></ul>
       <textarea class="pack-msg" id="pack0" readonly hidden>【涮吧常用系統】點網址打開後，加到手機桌面，之後點圖示就能用
 叫貨系統：https://script.google.com/macros/s/AKfycbxxzr_-g3Blutv7BoEewr9GjQlgRAwl8U_nJfBNIcFDtcr3ubwR_2RNZw4X9z7jIKMQzw/exec
 月結貨款：https://script.google.com/macros/s/AKfycby2jIheEVnTsYo2RAWWPwYrY4z-6Ag8Gj6Yn79swwsjVSmFXO8WIaXUeeh-mYyLD4jjvg/exec
 月底盤點：https://script.google.com/macros/s/AKfycbyYcZ69UNTuwHLsYXW8seoT19zT6qdeRB2BFJamao3dsrYsqdAJEJXHvjnajpyI2OWUlQ/exec
+表單叫貨（每月 5 號前）：https://script.google.com/macros/s/AKfycbzezyeonPvpUSGCYjlSSIXodCdsTUMhzIEz5FIjzwJfL5rlPR5rhcc-NJb7cRuhDiRx/exec?store=%E6%B6%AE%E5%90%A7
 員工手機頁：https://xinju-hr.pages.dev/employee.html
 
 加到桌面：iPhone 用 Safari 打開 → 下方「分享」→「加入主畫面」；Android 用 Chrome 打開 → 右上「⋮」→「加到主畫面」</textarea>
     </div>
     <div class="pack zh">
       <div class="pack-h"><div><b>朱輝哥・員工</b><small>貼到朱輝哥 LINE 群</small></div><button type="button" class="copy" data-i="1">複製整段</button></div>
-      <ul><li><b>候位叫號</b><span>https://chimerical-druid-ec181a.netlify.app/</span></li><li><b>月結貨款</b><span>https://script.google.com/macros/s/AKfycbwbiDB9Ry71S49kqMWkkMIuEXEftx3mM0QekM-mzycCRWUzkD3iL-a4bFNGz-dJPJw7/exec</span></li><li><b>月底盤點</b><span>https://script.google.com/macros/s/AKfycbzNCWxD4lz4ENKJPT5Sn25PsphkN4O7kIQpdkqCVRtBLx8_ip9Rf6mYOzbHn-zbIckjZA/exec</span></li><li><b>員工手機頁</b><span>https://xinju-hr.pages.dev/employee.html</span></li></ul>
+      <ul><li><b>候位叫號</b><span>https://chimerical-druid-ec181a.netlify.app/</span></li><li><b>月結貨款</b><span>https://script.google.com/macros/s/AKfycbwbiDB9Ry71S49kqMWkkMIuEXEftx3mM0QekM-mzycCRWUzkD3iL-a4bFNGz-dJPJw7/exec</span></li><li><b>月底盤點</b><span>https://script.google.com/macros/s/AKfycbzNCWxD4lz4ENKJPT5Sn25PsphkN4O7kIQpdkqCVRtBLx8_ip9Rf6mYOzbHn-zbIckjZA/exec</span></li><li><b>表單叫貨</b><span>https://script.google.com/macros/s/AKfycbzezyeonPvpUSGCYjlSSIXodCdsTUMhzIEz5FIjzwJfL5rlPR5rhcc-NJb7cRuhDiRx/exec?store=%E6%9C%B1%E8%BC%9D%E5%93%A5</span></li><li><b>員工手機頁</b><span>https://xinju-hr.pages.dev/employee.html</span></li></ul>
       <textarea class="pack-msg" id="pack1" readonly hidden>【朱輝哥常用系統】點網址打開後，加到手機桌面，之後點圖示就能用
 候位叫號：https://chimerical-druid-ec181a.netlify.app/
 月結貨款：https://script.google.com/macros/s/AKfycbwbiDB9Ry71S49kqMWkkMIuEXEftx3mM0QekM-mzycCRWUzkD3iL-a4bFNGz-dJPJw7/exec
 月底盤點：https://script.google.com/macros/s/AKfycbzNCWxD4lz4ENKJPT5Sn25PsphkN4O7kIQpdkqCVRtBLx8_ip9Rf6mYOzbHn-zbIckjZA/exec
+表單叫貨（每月 5 號前）：https://script.google.com/macros/s/AKfycbzezyeonPvpUSGCYjlSSIXodCdsTUMhzIEz5FIjzwJfL5rlPR5rhcc-NJb7cRuhDiRx/exec?store=%E6%9C%B1%E8%BC%9D%E5%93%A5
 員工手機頁：https://xinju-hr.pages.dev/employee.html
 
 加到桌面：iPhone 用 Safari 打開 → 下方「分享」→「加入主畫面」；Android 用 Chrome 打開 → 右上「⋮」→「加到主畫面」</textarea>
@@ -260,7 +270,7 @@ a.card:hover .huige{transform:rotate(4deg) translateY(-3px)}
     </div>
   </section>
 
-  <footer><span>宣澔餐飲國際有限公司</span><i>Xuan Hao Food &amp; Beverage International</i><small>總部版・更新 2026.11.03・自動更新已開啟</small></footer>
+  <footer><span>宣澔餐飲國際有限公司</span><i>Xuan Hao Food &amp; Beverage International</i><small>總部版・更新 2026.11.11・自動更新已開啟</small></footer>
 </main>
 
 <script>
@@ -285,6 +295,21 @@ document.querySelectorAll(".copy").forEach(function(b){
     if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(ok, fallback); else fallback();
   });
 });
+
+// 表單叫貨：卡片右上角紅點＝待處理張數（只抓張數，不含明細；抓不到就不顯示）
+(function(){
+  const API = "https://script.google.com/macros/s/AKfycbzezyeonPvpUSGCYjlSSIXodCdsTUMhzIEz5FIjzwJfL5rlPR5rhcc-NJb7cRuhDiRx/exec?page=count";
+  function load(){
+    fetch(API, { redirect: "follow" }).then(function(r){ return r.json(); }).then(function(d){
+      const n = Number(d && d.pending) || 0, dot = document.getElementById("formDot");
+      dot.textContent = n > 99 ? "99+" : String(n); dot.hidden = n <= 0;
+      document.getElementById("formFoot").textContent = n > 0 ? "有 " + n + " 張待處理" : "門市叫表單・出貨・每月統計";
+      document.getElementById("formCard").setAttribute("aria-label", "表單叫貨" + (n > 0 ? "，" + n + " 張待處理" : ""));
+    }).catch(function(){});
+  }
+  load(); setInterval(function(){ if (!document.hidden) load(); }, 300000);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) load(); });
+})();
 
 // 可安裝成 App（Chrome 網址列的安裝鈕、Safari「加入 Dock」）
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(function(){});
