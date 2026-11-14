@@ -18,6 +18,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=LXGW+WenKai+TC:wght@400;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=LXGW+WenKai+TC:wght@400;700&display=swap"></noscript>
+<!-- 節日特效：依日期自動開關（情人節／春節／萬聖節／聖誕節／跨年），設定在 festive.js -->
+<script src="festive.js"></script>
 <style>
 
 :root{--h:#7A2E3A;--h-lite:#A65663;--h-soft:#F7ECEE;--h-mid:#E2C3C8;
@@ -250,6 +252,7 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding-top:10px}
 加到桌面：iPhone 用 Safari 打開 → 下方「分享」→「加入主畫面」；Android 用 Chrome 打開 → 右上「⋮」→「加到主畫面」</textarea></div></div></section>
 <footer>宣澔餐飲國際有限公司　·　Xuan Hao Food &amp; Beverage International</footer>
 </div></div></div><script>(function(){var Q=["每一個決定，都讓兩家店走得更穩。", "今天的用心，會變成客人下次再來的理由。", "店能一直開下去，是因為有人在後面一直撐著。謝謝你。", "數字會說話，但讓數字變好的，是你的判斷。", "穩定，本身就是最難得的成績。", "一鍋好湯要慢慢熬，一間好公司也是。", "今天比昨天多看清一點，就是進步。", "團隊看得見你的方向，就不會走散。", "把小事做對，大事自然會來。", "每個月結算的那一刻，都是大家努力的證明。", "先照顧好人，人就會照顧好店。", "別忘了休息，你是這個團隊最重要的資產。", "兩家店的每一張笑臉，都有你的一份。", "能把複雜的事變簡單，就是管理最大的價值。", "謝謝你今天也為這個團隊扛起責任。", "慢一點沒關係，方向對了就會到。", "每一次檢討，都是下一次做得更好的開始。", "客人吃得開心、員工做得安心，就是最好的一天。", "你看得越遠，大家就走得越安心。", "今天也是讓品牌更好的一天，辛苦了。"],el=document.getElementById("quote"),nx=document.getElementById("qNext"),bar=document.getElementById("qBar");if(!el)return;
+if(window.XH_FEST&&XH_FEST.quotes)Q=XH_FEST.quotes;
 var i=Math.floor(Math.random()*Q.length),t;
 function show(){el.classList.remove("in");setTimeout(function(){el.textContent=Q[i];el.classList.add("in");if(bar){bar.classList.remove("run");void bar.offsetWidth;bar.classList.add("run")}},260)}
 function next(){i=(i+1)%Q.length;show()}
