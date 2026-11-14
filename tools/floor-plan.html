@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>店面平面圖小幫手</title>
+<style>
+:root {
+  --green: #C3F000; --green-dark: #7FA000; --green-soft: rgba(195,240,0,.2);
+  --orange: #FFAA00; --red: #E0483E; --red-soft: rgba(224,72,62,.1);
+  --dark: #1A1A16; --bg: #fafaf7; --surface: #fff; --surface2: #f3f3ee;
+  --border: #e3e3da; --text: #1a1a16; --text2: #5a5a52; --text3: #9a9a92;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { height: 100%; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  display: flex; flex-direction: column; height: 100vh; min-height: 640px; overflow: hidden; }
+/* 嵌在會員站 iframe 裡：iframe 會跟著 body 高度長，所以給固定高度避免無限長高 */
+body.embed { height: 880px; }
+button, select, input, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+button { cursor: pointer; border: none; background: none; }
+[hidden] { display: none !important; }
+
+/* ---- 頁首 ---- */
+header { background: var(--dark); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: none; }
+header h1 { font-size: 1.1rem; font-weight: 800; white-space: nowrap; }
+header h1 b { color: var(--green); }
+header .steps { display: flex; gap: 6px; font-size: .78rem; color: #b8b8ae; flex-wrap: wrap; }
+header .steps span { background: rgba(255,255,255,.08); padding: 2px 9px; border-radius: 99px; }
+header .steps span i { font-style: normal; color: var(--green); font-weight: 800; margin-right: 3px; }
+
+/* ---- 工具列 ---- */
+.toolbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 6px 10px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex: none; }
+.toolbar .sep { width: 1px; height: 24px; background: var(--border); margin: 0 2px; }
+.tb { height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); display: inline-flex; align-items: center; gap: 5px; font-size: .84rem; white-space: nowrap; }
+.tb:hover { background: var(--surface2); }
+.tb.on { background: var(--dark); color: var(--green); border-color: var(--dark); }
+.tb:disabled { opacity: .35; cursor: default; }
+.tb.primary { background: var(--green); border-color: var(--green); font-weight: 800; color: var(--dark); }
+.tb.primary:hover { filter: brightness(.95); }
+.toolbar .grow { flex: 1; }
+.zoomlbl { font-size: .8rem; color: var(--text2); min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* ---- 主畫面 ---- */
+.app { flex: 1; min-height: 0; display: grid; grid-template-columns: 290px 1fr 280px; }
+.side { background: var(--surface); overflow-y: auto; min-height: 0; }
+#sideL { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+#sideR { border-left: 1px solid var(--border); }
+.tabs { display: flex; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); z-index: 2; flex: none; }
+.tabs button { flex: 1; padding: 10px 4px 9px; font-size: .84rem; font-weight: 700; color: var(--text3); border-bottom: 3px solid transparent; }
+.tabs button i { font-style: normal; display: inline-flex; width: 18px; height: 18px; border-radius: 50%; background: var(--surface2); color: var(--text3); font-size: .72rem; align-items: center; justify-content: center; margin-right: 4px; }
+.tabs button.on { color: var(--text); border-bottom-color: var(--green); }
+.tabs button.on i { background: var(--dark); color: var(--green); }
+.tabpane { padding: 12px 14px 24px; display: flex; flex-direction: column; gap: 14px; }
+.sec h3 { font-size: .86rem; font-weight: 800; margin-bottom: 7px; display: flex; align-items: center; gap: 6px; }
+.sec h3 small { font-weight: 400; color: var(--text3); font-size: .74rem; }
+.hint { font-size: .78rem; color: var(--text3); line-height: 1.5; }
+.hint b { color: var(--text2); }
+.fld { display: flex; flex-direction: column; gap: 3px; margin-bottom: 7px; }
+.fld label { font-size: .76rem; color: var(--text2); font-weight: 700; }
+.inp { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); min-width: 0; }
+.inp:focus { outline: 2px solid var(--green); outline-offset: -1px; border-color: var(--green-dark); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.unit { position: relative; }
+.unit .inp { padding-right: 30px; }
+.unit::after { content: attr(data-u); position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: .72rem; color: var(--text3); pointer-events: none; }
+.btn { padding: 7px 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: .82rem; font-weight: 700; }
+.btn:hover { background: var(--surface2); }
+.btn.dark { background: var(--dark); color: var(--green); border-color: var(--dark); }
+.btn.green { background: var(--green); border-color: var(--green); color: var(--dark); }
+.btn.red { color: var(--red); }
+.btn.sm { padding: 4px 8px; font-size: .76rem; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 6px 10px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); font-size: .8rem; display: inline-flex; align-items: center; gap: 6px; }
+.chip:hover { border-color: var(--dark); }
+.chip .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+/* 牆面表 */
+.segs { display: flex; flex-direction: column; gap: 5px; }
+.seg { display: grid; grid-template-columns: 22px 1fr 1fr 26px; gap: 5px; align-items: center; }
+.seg .no { font-size: .74rem; color: var(--text3); text-align: center; font-weight: 700; }
+.seg .x { color: var(--text3); font-size: 1rem; height: 30px; border-radius: 6px; }
+.seg .x:hover { background: var(--red-soft); color: var(--red); }
+.seg.close { color: var(--text3); font-size: .78rem; }
+.okline { font-size: .78rem; padding: 6px 9px; border-radius: 7px; background: var(--green-soft); color: #3d4d00; }
+.okline.warn { background: rgba(255,170,0,.16); color: #8a5a00; }
+.area { display: flex; gap: 10px; font-size: .8rem; color: var(--text2); background: var(--surface2); padding: 7px 10px; border-radius: 8px; }
+.area b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* 設備庫 */
+.libcat { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.libcat > summary { list-style: none; cursor: pointer; padding: 8px 10px; font-weight: 800; font-size: .84rem; display: flex; align-items: center; gap: 7px; background: var(--surface2); }
+.libcat > summary::-webkit-details-marker { display: none; }
+.libcat > summary .dot { width: 11px; height: 11px; border-radius: 3px; }
+.libcat > summary .c { margin-left: auto; font-weight: 400; color: var(--text3); font-size: .74rem; }
+.libitems { display: flex; flex-direction: column; }
+.libitem { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-top: 1px solid var(--border); text-align: left; font-size: .82rem; }
+.libitem:hover { background: var(--green-soft); }
+.libitem .sz { margin-left: auto; color: var(--text3); font-size: .74rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.libitem .plus { width: 20px; height: 20px; border-radius: 6px; background: var(--dark); color: var(--green); font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; font-size: .9rem; }
+
+/* 右側 */
+.rpane { padding: 12px 14px 24px; display: flex; flex-direction: column; gap: 16px; }
+.empty { font-size: .8rem; color: var(--text3); background: var(--surface2); border-radius: 8px; padding: 10px; }
+.warns { display: flex; flex-direction: column; gap: 5px; }
+.warn { text-align: left; font-size: .79rem; padding: 7px 9px; border-radius: 8px; background: var(--red-soft); color: #9c2a22; line-height: 1.4; }
+.warn:hover { outline: 1px solid var(--red); }
+.warn.ok { background: var(--green-soft); color: #3d4d00; }
+.warn.amber { background: rgba(255,170,0,.15); color: #8a5a00; }
+table.list { width: 100%; border-collapse: collapse; font-size: .78rem; }
+table.list th { text-align: left; font-weight: 700; color: var(--text3); padding: 3px 4px; border-bottom: 1px solid var(--border); }
+table.list td { padding: 4px; border-bottom: 1px dashed var(--border); vertical-align: top; }
+table.list td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.list tr.cat td { font-weight: 800; color: var(--text2); background: var(--surface2); border-bottom: none; }
+
+/* 畫布 */
+#stage { position: relative; background: #eceee6; min-width: 0; min-height: 0; overflow: hidden; }
+#svg { width: 100%; height: 100%; display: block; touch-action: none; user-select: none; -webkit-user-select: none; cursor: default; }
+#svg.pan { cursor: grabbing; }
+#svg.dim { cursor: crosshair; }
+.status { position: absolute; left: 10px; bottom: 8px; background: rgba(26,26,22,.82); color: #e8e8e0; font-size: .74rem; padding: 4px 10px; border-radius: 99px; pointer-events: none; font-variant-numeric: tabular-nums; }
+.status b { color: var(--green); }
+.modehint { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 7px 14px; border-radius: 99px; font-size: .82rem; box-shadow: 0 4px 14px rgba(0,0,0,.2); display: flex; gap: 10px; align-items: center; }
+.modehint b { color: var(--green); }
+.modehint button { color: var(--dark); background: var(--green); border-radius: 99px; padding: 2px 10px; font-weight: 800; font-size: .76rem; white-space: nowrap; }
+.modehint button.ghost { background: rgba(255,255,255,.14); color: #fff; }
+.modehint { max-width: calc(100% - 20px); flex-wrap: wrap; justify-content: center; }
+.modehint .buf { background: var(--green); color: var(--dark); border-radius: 6px; padding: 0 6px; font-weight: 800; }
+.drawbtn { width: 100%; padding: 11px; border-radius: 10px; background: var(--green); font-weight: 800; font-size: .9rem; color: var(--dark); display: flex; align-items: center; justify-content: center; gap: 6px; }
+.drawbtn:hover { filter: brightness(.95); }
+.mobilebar { display: none; }
+
+/* 彈窗 */
+.mask { position: fixed; inset: 0; background: rgba(26,26,22,.55); display: flex; align-items: flex-start; justify-content: center; z-index: 50; padding: 40px 16px; overflow-y: auto; }
+.modal { background: var(--surface); border-radius: 16px; max-width: 520px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.3); overflow: hidden; }
+.modal .mh { background: var(--dark); color: #fff; padding: 14px 18px; font-weight: 800; font-size: 1.02rem; }
+.modal .mh b { color: var(--green); }
+.modal .mb { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.modal .mf { padding: 12px 18px 16px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.howto { display: flex; flex-direction: column; gap: 8px; }
+.howto div { display: flex; gap: 10px; align-items: flex-start; font-size: .88rem; }
+.howto i { font-style: normal; flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--dark); color: var(--green); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: .8rem; }
+.howto p { color: var(--text2); font-size: .8rem; }
+.check { display: flex; align-items: center; gap: 8px; font-size: .86rem; cursor: pointer; }
+.check input { width: 16px; height: 16px; accent-color: var(--dark); }
+.bigbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bigbtn { border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: left; display: flex; flex-direction: column; gap: 2px; }
+.bigbtn:hover { border-color: var(--dark); background: var(--surface2); }
+.bigbtn b { font-size: .9rem; }
+.bigbtn span { font-size: .74rem; color: var(--text3); }
+.bigbtn.hl { background: var(--green); border-color: var(--green); }
+.bigbtn.hl span { color: #3d4d00; }
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 9px 18px; border-radius: 99px; font-size: .86rem; z-index: 60; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+.toast b { color: var(--green); }
+#printArea { display: none; }
+
+/* ---- 平板：屬性面板收進左側第 4 個分頁 ---- */
+.tab4 { display: none; }
+@media (max-width: 1099px) {
+  .app { grid-template-columns: 280px 1fr; }
+  #sideR { display: none; }
+  .tab4 { display: block; }
+  header .steps { display: none; }
+}
+/* ---- 手機：只能看圖、下載 ---- */
+@media (max-width: 767px) {
+  body { height: auto; min-height: 0; overflow: auto; }
+  body.embed { height: auto; }
+  .app { display: block; }
+  #sideL, #sideR, .toolbar .edit { display: none !important; }
+  #stage { height: 520px; }
+  .mobilebar { display: block; background: rgba(255,170,0,.16); color: #8a5a00; font-size: .8rem; padding: 8px 14px; line-height: 1.5; }
+}
+
+/* ---- 列印（存 PDF）：只印圖面 ---- */
+@media print {
+  body { display: block; height: auto; overflow: visible; background: #fff; }
+  body > *:not(#printArea) { display: none !important; }
+  #printArea { display: block !important; }
+  #printArea svg { width: 100%; height: auto; display: block; }
+}
+</style>
+<style id="pageStyle">@page { size: A4 landscape; margin: 8mm; }</style>
+</head>
+<body>
+
+<header>
+  <h1>店面<b>平面圖</b>小幫手</h1>
+  <div class="steps">
+    <span><i>1</i>拉線畫出店面</span>
+    <span><i>2</i>點設備加進來、拖拉擺好</span>
+    <span><i>3</i>輸出圖面給設計師／工班</span>
+  </div>
+</header>
+
+<div class="mobilebar">📱 手機畫面太小不好擺設備，這裡只能<b>看圖和下載</b>。要編輯請用電腦或平板打開。</div>
+
+<div class="toolbar">
+  <button class="tb edit" id="bUndo" title="復原（Ctrl/⌘ + Z）">↶ 復原</button>
+  <button class="tb edit" id="bRedo" title="重做（Ctrl/⌘ + Shift + Z）">↷ 重做</button>
+  <span class="sep edit"></span>
+  <button class="tb edit on" id="bSelect" title="選取與拖拉（Esc）">🖐 選取</button>
+  <button class="tb edit" id="bWall" title="按住滑鼠拉線，畫出店面的牆">✏️ 畫牆</button>
+  <button class="tb edit" id="bDim" title="自己量兩點距離（M）">📏 量尺寸</button>
+  <span class="sep edit"></span>
+  <button class="tb" id="bZoomOut" title="縮小">－</button>
+  <span class="zoomlbl" id="zoomLbl">100%</span>
+  <button class="tb" id="bZoomIn" title="放大">＋</button>
+  <button class="tb" id="bFit" title="整張圖放進畫面">⤢ 看全圖</button>
+  <span class="sep edit"></span>
+  <button class="tb edit" id="tGrid" title="顯示格線（每格 50 公分）">▦ 格線</button>
+  <button class="tb edit" id="tSnap" title="拖拉設備靠近牆面或其他設備時，會自動貼齊（按住 Alt 拖拉可暫時不貼）">🧲 自動貼齊</button>
+  <button class="tb edit" id="tDims" title="選到設備時顯示它離牆／離其他設備多遠">↔ 距離</button>
+  <button class="tb edit" id="tAisle" title="檢查走道寬度與設備重疊">⚠ 走道檢查</button>
+  <span class="grow"></span>
+  <button class="tb edit" id="bClear" title="把設備、門窗、標註全部清掉，牆面保留">🧹 清空</button>
+  <button class="tb" id="bFile" title="開新圖、看範例、開啟專案檔">📂 檔案</button>
+  <button class="tb primary" id="bExport">⬇ 輸出圖面</button>
+</div>
+
+<div class="app">
+  <aside class="side" id="sideL">
+    <div class="tabs">
+      <button data-tab="room" class="on"><i>1</i>空間</button>
+      <button data-tab="lib"><i>2</i>設備</button>
+      <button data-tab="mark"><i>3</i>標註</button>
+      <button data-tab="prop" class="tab4">屬性</button>
+    </div>
+    <div class="tabpane" id="pane-room"></div>
+    <div class="tabpane" id="pane-lib" hidden></div>
+    <div class="tabpane" id="pane-mark" hidden></div>
+    <div class="tabpane" id="pane-prop" hidden></div>
+  </aside>
+
+  <main id="stage">
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg">
+      <defs id="defs"></defs>
+      <g id="world"></g>
+    </svg>
+    <div class="status" id="status"></div>
+    <div class="modehint" id="modeHint" hidden><span id="modeTxt"></span><button id="bWallUndo" class="ghost" hidden>↶ 上一點</button><button id="bDimDone">完成</button></div>
+  </main>
+
+  <aside class="side" id="sideR">
+    <div class="rpane" id="rpane">
+      <div class="sec"><h3>✏️ 選到的東西</h3><div id="props"></div></div>
+      <div class="sec"><h3>⚠️ 檢查結果 <small>點一下會選到該設備</small></h3><div id="warns"></div></div>
+      <div class="sec"><h3>📋 設備清單</h3><div id="list"></div></div>
+    </div>
+  </aside>
+</div>
+
+<div id="printArea"></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+
+<script>
+'use strict';
+/* =========================================================
+ * 店面平面圖小幫手
+ * 單位一律公分（cm），座標原點在第一面牆的起點，x 向右、y 向下
+ * 資料不存任何地方：畫完下載圖面，要再改就下載「專案檔」下次開回來
+ * ========================================================= */
+
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2, 9);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const r1 = v => Math.round(v * 10) / 10;
+const fmt = v => { const x = r1(v); return Number.isInteger(x) ? String(x) : x.toFixed(1); };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const NS = 'vector-effect="non-scaling-stroke"';
+
+// ---- 台灣時間的今天（不用 toISOString，避免早上 8 點前抓到昨天）----
+function todayTW() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/* ================= 設備庫 ================= */
+// solid：會擋路的實體設備（列入走道／重疊檢查）
+const CATS = {
+  cold:   { name: '冷藏冷凍', color: '#1E7FD8', solid: 1 },
+  prep:   { name: '備料清洗', color: '#2E9B47', solid: 1 },
+  hot:    { name: '加熱爐具', color: '#E0483E', solid: 1 },
+  bar:    { name: '吧台飲料', color: '#8E3FB5', solid: 1 },
+  front:  { name: '櫃台出餐', color: '#E07B00', solid: 1 },
+  seat:   { name: '座位',     color: '#B08F00', solid: 0 },
+  store:  { name: '收納雜項', color: '#7A5A44', solid: 1 },
+  struct: { name: '結構',     color: '#56656E', solid: 1 },
+  custom: { name: '自訂設備', color: '#1A1A16', solid: 1 },
+};
+// [分類, 名稱, 寬, 深, 圖示, 額外]
+const LIB = [
+  ['cold', '四門冰箱', 122, 76, 'x1'], ['cold', '六門冰箱', 183, 76, 'x1'],
+  ['cold', '工作台冰箱 4尺', 120, 75, 'x1'], ['cold', '工作台冰箱 5尺', 150, 75, 'x1'], ['cold', '工作台冰箱 6尺', 180, 75, 'x1'],
+  ['cold', '臥式冷凍櫃', 150, 70, 'x1'], ['cold', '單門展示冰箱', 60, 65, 'x1'], ['cold', '雙門展示冰箱', 110, 70, 'x1'],
+  ['cold', '沙拉冰台', 150, 75, 'x1'], ['cold', '製冰機', 76, 80, 'x1'], ['cold', '組合式冷凍庫', 200, 200, 'x1'],
+  ['prep', '不鏽鋼工作台 4尺', 120, 60, 'none'], ['prep', '不鏽鋼工作台 5尺', 150, 60, 'none'], ['prep', '不鏽鋼工作台 6尺', 180, 75, 'none'],
+  ['prep', '單槽水槽', 60, 60, 'sink1'], ['prep', '雙槽水槽', 120, 60, 'sink2'], ['prep', '三槽水槽', 180, 60, 'sink3'],
+  ['prep', '洗手台', 45, 40, 'sink1'], ['prep', '掀門式洗碗機', 65, 75, 'dish'], ['prep', '殘渣台', 90, 60, 'none'],
+  ['hot', '中式快速爐（雙口）', 150, 90, 'b2'], ['hot', '四口爐', 80, 80, 'b4'], ['hot', '六口爐', 120, 80, 'b6'],
+  ['hot', '平板煎台', 90, 60, 'grill'], ['hot', '油炸機（雙槽）', 60, 60, 'fry'], ['hot', '湯桶爐', 60, 60, 'b1'],
+  ['hot', '煮麵爐', 60, 70, 'b4'], ['hot', '蒸爐', 90, 80, 'grill'], ['hot', '旋風烤箱', 80, 70, 'x'], ['hot', '微波爐', 55, 45, 'x'],
+  ['hot', '排油煙罩（在上方）', 240, 100, 'hood', { over: 1 }],
+  ['bar', '咖啡機', 80, 60, 'b2'], ['bar', '磨豆機', 25, 40, 'b1'], ['bar', '封口機', 40, 50, 'x'], ['bar', '開飲機', 40, 50, 'b1'],
+  ['bar', '果糖機', 30, 40, 'b1'], ['bar', '茶桶工作台', 120, 60, 'b2'], ['bar', '飲料吧台', 180, 60, 'none'],
+  ['front', 'POS 收銀台', 120, 60, 'pos'], ['front', '出餐台', 150, 50, 'none'], ['front', '自助點餐機', 60, 45, 'pos'],
+  ['front', '蛋糕／冷藏展示櫃', 120, 70, 'x1'], ['front', '外帶等候椅', 120, 45, 'none'],
+  ['seat', '二人桌', 60, 60, 'none'], ['seat', '四人桌', 120, 75, 'none'], ['seat', '方桌 75', 75, 75, 'none'],
+  ['seat', '圓桌 Ø90', 90, 90, 'none', { round: 1 }], ['seat', '單椅', 45, 45, 'chair'], ['seat', '吧台椅', 40, 40, 'none', { round: 1 }],
+  ['seat', '卡座沙發', 120, 60, 'sofa'], ['seat', '長吧台桌', 300, 45, 'none'],
+  ['store', '層架', 120, 45, 'shelf'], ['store', '乾貨層架（深）', 150, 60, 'shelf'], ['store', '置物櫃', 90, 45, 'shelf'],
+  ['store', '垃圾桶', 45, 45, 'bin'], ['store', '回收桶組', 90, 45, 'bin2'], ['store', '油水分離槽', 60, 40, 'x'],
+  ['struct', '柱子', 40, 40, 'col'], ['struct', '樓梯', 100, 300, 'stair'], ['struct', '廁所', 150, 180, 'wc'],
+  ['struct', '管道間', 60, 60, 'col'], ['struct', '地板排水溝', 200, 20, 'trench', { floor: 1 }],
+];
+// 門窗：寬度＝開口寬
+const OPENS = [
+  ['door', '單開門', 90], ['door2', '雙開門', 150], ['slide', '推拉門', 180],
+  ['window', '窗戶', 120], ['shutter', '鐵捲門', 300], ['gap', '開口（沒有門）', 100],
+];
+// 水電孔位標記
+const MARKS = [
+  ['water', '給水', 'W', '#1E7FD8'], ['drain', '排水', 'D', '#00A3B5'], ['gas', '瓦斯', 'G', '#C99A00'],
+  ['v110', '插座 110V', '110', '#E07B00'], ['v220', '插座 220V', '220', '#E0483E'], ['fan', '排風孔', 'F', '#56656E'],
+  ['net', '網路／電話', 'N', '#8E3FB5'], ['light', '燈具', 'L', '#B08F00'],
+];
+const OPEN_COLOR = '#0096A8';
+
+/* ================= 狀態 ================= */
+let S = blankProject(600, 400);
+let SEL = [];            // 選到的 id
+let MODE = 'select';     // select | dim
+let DIMA = null, DIMP = null; // 量尺寸：第一點、預覽點
+let V = { s: 1, ox: 0, oy: 0 }; // 畫布：每公分幾 px、平移量
+let G = null;            // 這一輪算好的牆面幾何
+let WARNS = [];          // 檢查結果
+let GUIDES = [];         // 拖拉時的吸附參考線
+let drag = null;
+let WP = [], WD = null;  // 拉線畫牆：已畫好的牆角、目前拉到的位置
+let WSNAP = null;        // 拉線時對齊到哪個舊牆角（畫綠色虛線提示）
+let TAB = 'room';        // 左邊目前在哪個分頁（空間分頁時才顯示牆角把手）
+let UNDO = [], REDO = [];
+let DIRTY = false;
+let CURSOR = null;
+const PTRS = new Map();
+
+function blankProject(W, D) {
+  return {
+    app: 'storeplan', v: 1,
+    meta: { name: '我的店', addr: '', author: '', note: '' },
+    room: { t: 15, pts: [[0, 0], [W, 0], [W, D], [0, D]] },   // 牆角座標，依序連起來、最後接回第一點
+    items: [], custom: [],
+    set: { grid: true, snap: true, dims: true, aisle: true, aisleMin: 90, labels: true, sizes: true },
+  };
+}
+
+/* ================= 幾何：牆面 ================= */
+// 舊版專案檔（一面一面輸入方向＋長度）轉成牆角座標
+const OLD_DIRS = { R: [1, 0], D: [0, 1], L: [-1, 0], U: [0, -1] };
+function segsToPts(r) {
+  let x = +r.sx || 0, y = +r.sy || 0; const pts = [[x, y]];
+  for (const s of r.segs || []) { const v = OLD_DIRS[s.dir], L = +s.len || 0; if (!v || L <= 0) continue; x += v[0] * L; y += v[1] * L; pts.push([x, y]); }
+  return pts;
+}
+
+function roomGeo() {
+  const r = S.room;
+  const raw = (r.pts || segsToPts(r)).map(p => [+p[0], +p[1]]);
+  const last = raw[raw.length - 1];
+  const closeLen = raw.length ? Math.hypot(last[0] - raw[0][0], last[1] - raw[0][1]) : 0;
+  if (closeLen < 0.01 && raw.length > 1) raw.pop();
+  // 去掉共線多餘的點
+  let P = raw.slice();
+  for (let k = 0; k < 3; k++) {
+    const out = [];
+    for (let i = 0; i < P.length; i++) {
+      const a = P[(i - 1 + P.length) % P.length], b = P[i], c = P[(i + 1) % P.length];
+      const cr = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+      const same = Math.hypot(b[0] - a[0], b[1] - a[1]) < 0.01;
+      if (Math.abs(cr) > 1e-6 && !same) out.push(b);
+    }
+    P = out;
+  }
+  if (P.length < 3) return { ok: false, pts: [], edges: [], outer: [], area: 0, closeLen, t: +r.t || 0 };
+  let A = 0;
+  for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; A += a[0] * b[1] - b[0] * a[1]; }
+  const sign = A > 0 ? 1 : -1;
+  const edges = P.map((a, i) => {
+    const b = P[(i + 1) % P.length], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
+    return { a, b, len, ux, uy, nx: sign * uy, ny: -sign * ux, i }; // n＝朝外
+  });
+  const t = Math.max(0, +r.t || 0);
+  const outer = P.map((p, i) => {
+    const e1 = edges[(i - 1 + P.length) % P.length], e2 = edges[i];
+    const p1 = [p[0] + e1.nx * t, p[1] + e1.ny * t], p2 = [p[0] + e2.nx * t, p[1] + e2.ny * t];
+    const cr = e1.ux * e2.uy - e1.uy * e2.ux;
+    if (Math.abs(cr) < 1e-9) return p1;
+    const a = ((p2[0] - p1[0]) * e2.uy - (p2[1] - p1[1]) * e2.ux) / cr;
+    return [p1[0] + e1.ux * a, p1[1] + e1.uy * a];
+  });
+  return { ok: true, pts: P, edges, outer, area: Math.abs(A) / 2, closeLen, t, raw };
+}
+
+/* ================= 幾何：物件 ================= */
+function corners(it) {
+  const a = (it.rot || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), hw = it.w / 2, hd = it.d / 2;
+  return [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]].map(([x, y]) => [it.cx + x * c - y * s, it.cy + x * s + y * c]);
+}
+function aabb(it) {
+  if (it.t === 'dim') return { l: Math.min(it.x1, it.x2), r: Math.max(it.x1, it.x2), t: Math.min(it.y1, it.y2), b: Math.max(it.y1, it.y2) };
+  const p = corners(it);
+  const xs = p.map(q => q[0]), ys = p.map(q => q[1]);
+  return { l: Math.min(...xs), r: Math.max(...xs), t: Math.min(...ys), b: Math.max(...ys) };
+}
+const isEquip = it => it.t === 'equip';
+const isSolid = it => isEquip(it) && !it.over && !it.floor && (CATS[it.cat]?.solid ?? 1);
+const colorOf = it => it.color || (it.t === 'open' ? OPEN_COLOR : it.t === 'mark' ? (MARKS.find(m => m[0] === it.mk)?.[3] || '#333') : CATS[it.cat]?.color || '#1A1A16');
+const byId = id => S.items.find(i => i.id === id);
+
+function overlap(A, B) { // 兩個旋轉矩形是否重疊（分離軸），貼齊不算
+  for (const P of [A, B]) for (let i = 0; i < 4; i++) {
+    const p1 = P[i], p2 = P[(i + 1) % 4];
+    const nx = p2[1] - p1[1], ny = p1[0] - p2[0], len = Math.hypot(nx, ny);
+    let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+    for (const q of A) { const v = (q[0] * nx + q[1] * ny) / len; a0 = Math.min(a0, v); a1 = Math.max(a1, v); }
+    for (const q of B) { const v = (q[0] * nx + q[1] * ny) / len; b0 = Math.min(b0, v); b1 = Math.max(b1, v); }
+    if (Math.min(a1, b1) - Math.max(a0, b0) <= 0.5) return false;
+  }
+  return true;
+}
+function distSeg(p, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy;
+  let t = L2 ? ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2 : 0; t = clamp(t, 0, 1);
+  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
+}
+function inPoly(p, P) {
+  for (let i = 0; i < P.length; i++) if (distSeg(p, P[i], P[(i + 1) % P.length]) < 0.6) return true;
+  let inside = false;
+  for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+    const [xi, yi] = P[i], [xj, yj] = P[j];
+    if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function textW(s, fs) { let w = 0; for (const ch of String(s)) w += /[\x00-\xff]/.test(ch) ? fs * .58 : fs; return w; }
+
+/* 門窗貼到最近的牆：設定中心點與角度（區域座標 +y 一律朝室內） */
+function snapToWall(it, px, py) {
+  if (!G || !G.ok) { it.cx = px; it.cy = py; return; }
+  let best = null;
+  for (const e of G.edges) {
+    const half = Math.min(it.w / 2, e.len / 2);
+    let t = ((px - e.a[0]) * e.ux + (py - e.a[1]) * e.uy);
+    t = clamp(t, half, e.len - half);
+    const q = [e.a[0] + e.ux * t, e.a[1] + e.uy * t];
+    const d = Math.hypot(px - q[0], py - q[1]);
+    if (!best || d < best.d) best = { d, q, e };
+  }
+  const e = best.e;
+  it.cx = r1(best.q[0]); it.cy = r1(best.q[1]);
+  // 區域 y 軸 = (-sin, cos) 要等於朝內 (-nx, -ny)
+  let rot = Math.atan2(e.uy, e.ux);
+  if (Math.abs(-Math.sin(rot) + e.nx) > .01 || Math.abs(Math.cos(rot) + e.ny) > .01) rot += Math.PI;
+  it.rot = Math.round(((rot * 180 / Math.PI) % 360 + 360) % 360);
+}
+
+/* ================= 檢查：走道、重疊、超出牆外 ================= */
+function runChecks() {
+  const W = [];
+  if (!G || !G.ok) { WARNS = W; return; }
+  const solids = S.items.filter(isSolid);
+  const boxes = new Map(solids.map(it => [it.id, aabb(it)]));
+  // 1. 重疊
+  for (let i = 0; i < solids.length; i++) for (let j = i + 1; j < solids.length; j++) {
+    if (overlap(corners(solids[i]), corners(solids[j]))) W.push({ type: 'overlap', ids: [solids[i].id, solids[j].id], msg: `「${solids[i].name}」和「${solids[j].name}」重疊了` });
+  }
+  // 2. 超出牆外
+  for (const it of S.items.filter(i => i.t === 'equip')) {
+    if (corners(it).some(p => !inPoly(p, G.pts))) W.push({ type: 'out', ids: [it.id], msg: `「${it.name}」超出牆外` });
+  }
+  // 3. 走道寬度：每個設備往四個方向找最近的障礙物，間距在 35～最小走道 之間就提醒（35 以下當成縫隙）
+  if (S.set.aisle) {
+    const min = +S.set.aisleMin || 90, seen = new Set();
+    const hEdges = G.edges.filter(e => Math.abs(e.uy) < 1e-6), vEdges = G.edges.filter(e => Math.abs(e.ux) < 1e-6);
+    const ov = (a0, a1, b0, b1) => Math.min(a1, b1) - Math.max(a0, b0);
+    for (const it of solids) {
+      const A = boxes.get(it.id);
+      const dirs = [
+        { k: 'down', axis: 'y', from: A.b, sign: 1 }, { k: 'up', axis: 'y', from: A.t, sign: -1 },
+        { k: 'right', axis: 'x', from: A.r, sign: 1 }, { k: 'left', axis: 'x', from: A.l, sign: -1 },
+      ];
+      for (const d of dirs) {
+        let best = null;
+        for (const o of solids) {
+          if (o.id === it.id) continue;
+          const B = boxes.get(o.id);
+          const o1 = d.axis === 'y' ? ov(A.l, A.r, B.l, B.r) : ov(A.t, A.b, B.t, B.b);
+          if (o1 < 30) continue;
+          const face = d.axis === 'y' ? (d.sign > 0 ? B.t : B.b) : (d.sign > 0 ? B.l : B.r);
+          const gap = (face - d.from) * d.sign;
+          if (gap < -0.5) continue;
+          if (!best || gap < best.gap) best = { gap, id: o.id, name: o.name, B, o1 };
+        }
+        for (const e of (d.axis === 'y' ? hEdges : vEdges)) {
+          const o1 = d.axis === 'y' ? ov(A.l, A.r, Math.min(e.a[0], e.b[0]), Math.max(e.a[0], e.b[0])) : ov(A.t, A.b, Math.min(e.a[1], e.b[1]), Math.max(e.a[1], e.b[1]));
+          if (o1 < 30) continue;
+          const face = d.axis === 'y' ? e.a[1] : e.a[0];
+          const gap = (face - d.from) * d.sign;
+          if (gap < -0.5) continue;
+          if (!best || gap < best.gap) best = { gap, wall: e.i, name: '牆面', o1, e };
+        }
+        if (!best || best.gap < 35 || best.gap >= min) continue;
+        const key = best.id ? [it.id, best.id].sort().join('|') + d.axis : it.id + '|w' + best.wall;
+        if (seen.has(key)) continue; seen.add(key);
+        // 標示線的位置：兩者重疊段的中間
+        let mid;
+        if (best.B) mid = d.axis === 'y' ? (Math.max(A.l, best.B.l) + Math.min(A.r, best.B.r)) / 2 : (Math.max(A.t, best.B.t) + Math.min(A.b, best.B.b)) / 2;
+        else { const e = best.e; mid = d.axis === 'y' ? (Math.max(A.l, Math.min(e.a[0], e.b[0])) + Math.min(A.r, Math.max(e.a[0], e.b[0]))) / 2 : (Math.max(A.t, Math.min(e.a[1], e.b[1])) + Math.min(A.b, Math.max(e.a[1], e.b[1]))) / 2; }
+        const p1 = d.axis === 'y' ? [mid, d.from] : [d.from, mid];
+        const p2 = d.axis === 'y' ? [mid, d.from + best.gap * d.sign] : [d.from + best.gap * d.sign, mid];
+        W.push({ type: 'aisle', ids: best.id ? [it.id, best.id] : [it.id], gap: best.gap, p1, p2,
+          msg: `「${it.name}」和「${best.name}」之間走道只有 ${fmt(best.gap)} 公分（建議至少 ${min}）` });
+      }
+    }
+  }
+  WARNS = W;
+}
+
+/* ================= 畫圖：SVG 片段 ================= */
+function defsSVG() {
+  return `
+  <pattern id="pGrid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="#d6d8cf" stroke-width="1" ${NS}/></pattern>
+  <pattern id="pGrid2" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M100 0H0V100" fill="none" stroke="#c3c6ba" stroke-width="1" ${NS}/></pattern>
+  <pattern id="pWall" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f6e3d6"/><line x1="0" y1="0" x2="0" y2="8" stroke="#D86A2C" stroke-width="2"/></pattern>
+  <pattern id="pHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#56656E" stroke-width="1.6"/></pattern>
+  <linearGradient id="gSteel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7f8f9"/><stop offset=".55" stop-color="#dde2e6"/><stop offset="1" stop-color="#eef1f3"/></linearGradient>
+  <linearGradient id="gWood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e7c8"/><stop offset="1" stop-color="#e7cd9d"/></linearGradient>
+  <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3f3fc"/><stop offset="1" stop-color="#b9def3"/></linearGradient>
+  <filter id="fSh" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="1.2" dy="2.2" stdDeviation="1.8" flood-color="#1A1A16" flood-opacity=".2"/></filter>`;
+}
+
+// 尺寸線（建築圖的斜線端點）
+function dimSVG(x1, y1, x2, y2, off, txt, col, ui, opt = {}) {
+  const L = Math.hypot(x2 - x1, y2 - y1); if (L < 0.5) return '';
+  const px = ui.k / ui.s;
+  const ux = (x2 - x1) / L, uy = (y2 - y1) / L, nx = -uy, ny = ux;
+  const a = [x1 + nx * off, y1 + ny * off], b = [x2 + nx * off, y2 + ny * off];
+  const sw = opt.w || 1;
+  let s = '';
+  if (off) {
+    const sg = Math.sign(off), g = 3 * px, ex = 5 * px;
+    for (const [p, q] of [[[x1, y1], a], [[x2, y2], b]])
+      s += `<line x1="${p[0] + nx * sg * g}" y1="${p[1] + ny * sg * g}" x2="${q[0] + nx * sg * ex}" y2="${q[1] + ny * sg * ex}" stroke="${col}" stroke-width=".8" ${NS}/>`;
+  }
+  s += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col}" stroke-width="${sw}" ${NS}${opt.dash ? ' stroke-dasharray="5 3"' : ''}/>`;
+  const tk = 4.5 * px, tx = (ux + nx) * tk * .7071, ty = (uy + ny) * tk * .7071;
+  for (const p of [a, b]) s += `<line x1="${p[0] - tx}" y1="${p[1] - ty}" x2="${p[0] + tx}" y2="${p[1] + ty}" stroke="${col}" stroke-width="1.6" ${NS}/>`;
+  let ang = Math.atan2(uy, ux) * 180 / Math.PI;
+  if (ang > 90.5) ang -= 180; if (ang <= -89.5) ang += 180;
+  const sg = off ? Math.sign(off) : -1;
+  // 文字放在線的外側；把方向轉成「螢幕上方」
+  const fs = (opt.fs || 11) * px;
+  let tnx = nx * sg, tny = ny * sg;
+  const mx = (a[0] + b[0]) / 2 + tnx * fs * .75, my = (a[1] + b[1]) / 2 + tny * fs * .75;
+  if (opt.pill) { // 可以點的數字：加一個膠囊底，看起來像按鈕
+    const tw = textW(txt, fs) + fs * 1.1, th = fs * 1.6;
+    s += `<rect x="${mx - tw / 2}" y="${my - th / 2}" width="${tw}" height="${th}" rx="${th / 2}" transform="rotate(${ang} ${mx} ${my})" fill="#fff" stroke="${col}" stroke-width="1.2" ${NS}/>`;
+  }
+  s += `<text x="${mx}" y="${my}" font-size="${fs}" text-anchor="middle" dominant-baseline="central" transform="rotate(${ang} ${mx} ${my})" fill="${col}" stroke="#fff" stroke-width="${opt.pill ? 0 : 3 * px}" paint-order="stroke" font-weight="700">${esc(txt)}</text>`;
+  return s;
+}
+
+// 設備的俯視圖示（區域座標，中心為 0,0；+y 那側是「正面」：門、旋鈕、人站的那邊）
+function symSVG(it, col) {
+  const w = it.w, d = it.d, hw = w / 2, hd = d / 2, m = Math.max(2, Math.min(7, w * .1, d * .1));
+  const ns = NS;
+  const R = (x, y, ww, hh, a = '') => `<rect x="${x}" y="${y}" width="${Math.max(0, ww)}" height="${Math.max(0, hh)}" ${a}/>`;
+  const C = (x, y, r, a = '') => `<circle cx="${x}" cy="${y}" r="${Math.max(0, r)}" ${a}/>`;
+  const Ln = (a, b, c, e, x = '') => `<line x1="${a}" y1="${b}" x2="${c}" y2="${e}" ${x}/>`;
+  const thin = `stroke="${col}" stroke-width=".8" ${ns}`;
+  const knobs = (n, y = hd - Math.min(5, d * .08)) => { // 正面的旋鈕
+    let s = ''; const r = Math.min(3.2, w / (n * 5), d * .06);
+    for (let i = 0; i < n; i++) s += C(-hw + w * (i + .5) / n, y, r, `fill="#1A1A16"`);
+    return s;
+  };
+  // 爐架：深色圓盤＋環＋爐架十字
+  const grate = (x, y, r) => C(x, y, r, `fill="#2f2f2b"`) + C(x, y, r * .62, `fill="none" stroke="#8a8a82" stroke-width="1" ${ns}`) + C(x, y, r * .22, `fill="#E0483E" fill-opacity=".8"`) +
+    Ln(x - r * .92, y, x + r * .92, y, `stroke="#6a6a62" stroke-width="1" ${ns}`) + Ln(x, y - r * .92, x, y + r * .92, `stroke="#6a6a62" stroke-width="1" ${ns}`);
+  const burners = (cols, rows) => {
+    let s = ''; const top = d - Math.min(10, d * .14); // 留正面給旋鈕
+    const cw = w / cols, rh = top / rows, r = Math.min(cw, rh) * .36;
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) s += grate(-hw + cw * (i + .5), -hd + rh * (j + .5), r);
+    return s + knobs(cols * Math.min(rows, 2));
+  };
+  // 水槽：水藍槽體＋排水孔＋背面的龍頭
+  const basins = n => {
+    let s = ''; const g = m, bw = (w - g * (n + 1)) / n, top = -hd + g + Math.min(8, d * .12), bh = hd - g - top;
+    for (let i = 0; i < n; i++) {
+      const x = -hw + g + i * (bw + g), cx = x + bw / 2;
+      s += R(x, top, bw, bh, `rx="${Math.min(6, bw * .15)}" fill="url(#gWater)" stroke="${col}" stroke-width="1" ${ns}`) +
+        C(cx, top + bh / 2, Math.min(bw, bh) * .07, `fill="#fff" stroke="${col}" stroke-width=".8" ${ns}`) +
+        C(cx, -hd + g * .9, Math.min(3, g * .6), `fill="#8a8a82"`) + Ln(cx, -hd + g * .9, cx, top + Math.min(8, bh * .2), `stroke="#8a8a82" stroke-width="1.6" ${ns}`);
+    }
+    return s;
+  };
+  switch (it.sym) {
+    case 'x1': { // 冰箱、冷凍櫃：門片＋把手＋雪花
+      const n = Math.max(1, Math.round(w / 62)), pw = (w - 4) / n;
+      let s = '';
+      for (let i = 0; i < n; i++) {
+        const x = -hw + 2 + i * pw;
+        s += R(x + 1, -hd + 3, pw - 2, d - 6, `rx="2" fill="#fff" fill-opacity=".75" stroke="${col}" stroke-width=".8" ${ns}`);
+        s += R(x + pw / 2 - Math.min(9, pw * .2), hd - 7, Math.min(18, pw * .4), 2.6, `rx="1.3" fill="${col}"`); // 把手
+      }
+      const r = Math.min(w, d) * .14, cy = -hd + d * .42;
+      for (let k = 0; k < 3; k++) { const a = k * Math.PI / 3; s += Ln(-Math.cos(a) * r, cy - Math.sin(a) * r, Math.cos(a) * r, cy + Math.sin(a) * r, `stroke="${col}" stroke-width="1.2" stroke-linecap="round" ${ns}`); }
+      return s;
+    }
+    case 'x': // 烤箱、微波爐、封口機等機器：面板＋旋鈕
+      return R(-hw + m, -hd + m, w - 2 * m, d - 2 * m - Math.min(8, d * .12), `rx="3" fill="#fff" fill-opacity=".6" stroke="${col}" stroke-width=".8" ${ns}`) +
+        R(-hw + m + 3, -hd + m + 3, (w - 2 * m) * .6, (d - 2 * m) * .5, `rx="2" fill="#2f2f2b" fill-opacity=".75"`) + knobs(2);
+    case 'bin': return R(-hw + 3, -hd + 3, w - 6, d - 6, `rx="${Math.min(w, d) * .2}" fill="#fff" fill-opacity=".5" stroke="${col}" stroke-width=".8" ${ns}`) +
+      R(-w * .15, -hd + 5, w * .3, 3, `rx="1.5" fill="${col}"`);
+    case 'bin2': return R(-hw + 3, -hd + 3, w / 2 - 4, d - 6, `rx="6" fill="#fff" fill-opacity=".5" stroke="${col}" stroke-width=".8" ${ns}`) +
+      R(1, -hd + 3, w / 2 - 4, d - 6, `rx="6" fill="#fff" fill-opacity=".5" stroke="${col}" stroke-width=".8" ${ns}`);
+    case 'sink1': return basins(1);
+    case 'sink2': return basins(2);
+    case 'sink3': return basins(3);
+    case 'b1': return burners(1, 1);
+    case 'b2': return w >= d ? burners(2, 1) : burners(1, 2);
+    case 'b4': return burners(2, 2);
+    case 'b6': return w >= d ? burners(3, 2) : burners(2, 3);
+    case 'grill': { // 煎台：深色鐵板＋油槽＋旋鈕
+      const top = d - Math.min(12, d * .16);
+      let s = R(-hw + m, -hd + m, w - 2 * m, top - m * 1.4, `rx="2" fill="#3a3a35"`);
+      for (let i = 1; i < 5; i++) s += Ln(-hw + m + (w - 2 * m) * i / 5, -hd + m + 2, -hw + m + (w - 2 * m) * i / 5, -hd + top - m * 1.4 - 2, `stroke="#5a5a52" stroke-width=".8" ${ns}`);
+      return s + knobs(Math.max(2, Math.round(w / 30)));
+    }
+    case 'fry': { // 炸爐：兩個油槽＋炸籃把手
+      const top = d - Math.min(12, d * .18), bw = (w - 3 * m) / 2;
+      let s = '';
+      for (const x of [-hw + m, -hw + 2 * m + bw]) {
+        s += R(x, -hd + m, bw, top - m, `rx="2" fill="#E8B84A" fill-opacity=".55" stroke="${col}" stroke-width=".8" ${ns}`);
+        for (let j = 1; j < 4; j++) s += Ln(x + 2, -hd + m + (top - m) * j / 4, x + bw - 2, -hd + m + (top - m) * j / 4, `stroke="#9c7a20" stroke-width=".6" ${ns}`);
+        s += Ln(x + bw / 2, -hd + top, x + bw / 2, hd - 3, `stroke="#1A1A16" stroke-width="2" stroke-linecap="round" ${ns}`);
+      }
+      return s;
+    }
+    case 'dish': { // 洗碗機：碗籃格子
+      let s = R(-hw + m, -hd + m, w - 2 * m, d - 2 * m, `rx="3" fill="#fff" fill-opacity=".5" ${thin}`);
+      for (let i = 1; i < 5; i++) s += Ln(-hw + m + (w - 2 * m) * i / 5, -hd + m, -hw + m + (w - 2 * m) * i / 5, hd - m, thin) + Ln(-hw + m, -hd + m + (d - 2 * m) * i / 5, hw - m, -hd + m + (d - 2 * m) * i / 5, thin);
+      return s;
+    }
+    case 'shelf': { // 層架：隔板＋上面擺的箱子
+      let s = Ln(-hw + 2, 0, hw - 2, 0, thin);
+      const n = Math.max(2, Math.round(w / 35)), bw = (w - 6) / n;
+      for (let i = 0; i < n; i++) s += R(-hw + 3 + i * bw + 2, -hd + 4, bw - 4, d / 2 - 7, `rx="1.5" fill="${col}" fill-opacity=".22" ${thin}`);
+      return s;
+    }
+    case 'pos': // 收銀：螢幕＋錢櫃
+      return R(-w * .16, -hd + m, w * .32, Math.min(10, d * .22), `rx="2" fill="#2f2f2b"`) +
+        R(-w * .2, -hd + m + Math.min(10, d * .22) + 3, w * .4, d * .3, `rx="2" fill="#fff" stroke="${col}" stroke-width=".8" ${ns}`);
+    case 'chair': // 椅子：坐墊＋椅背（椅背在後方）
+      return R(-hw + 4, -hd + 9, w - 8, d - 13, `rx="${Math.min(w, d) * .18}" fill="url(#gWood)" stroke="${col}" stroke-width="1" ${ns}`) +
+        R(-hw + 3, -hd + 2, w - 6, 6, `rx="3" fill="${col}" fill-opacity=".7"`);
+    case 'sofa': {
+      let s = R(-hw + 2, -hd + 2, w - 4, Math.min(16, d * .3), `rx="5" fill="${col}" fill-opacity=".55"`);
+      const n = Math.max(1, Math.round(w / 55)), cw = (w - 8) / n, y0 = -hd + Math.min(16, d * .3) + 3;
+      for (let i = 0; i < n; i++) s += R(-hw + 4 + i * cw + 1, y0, cw - 2, hd - y0 - 3, `rx="5" fill="url(#gWood)" stroke="${col}" stroke-width=".8" ${ns}`);
+      return s;
+    }
+    case 'stair': { let s = ''; for (let y = -hd + 25; y < hd; y += 25) s += Ln(-hw, y, hw, y, thin); s += Ln(0, hd - 10, 0, -hd + 15, `stroke="${col}" stroke-width="1.2" ${ns}`) + `<path d="M${-8} ${-hd + 28} L0 ${-hd + 12} L8 ${-hd + 28}" fill="none" stroke="${col}" stroke-width="1.2" ${ns}/>`; return s; }
+    case 'col': return '';
+    case 'wc': return R(-16, -hd + 5, 32, 13, `rx="3" fill="#fff" stroke="${col}" stroke-width="1" ${ns}`) +
+      `<ellipse cx="0" cy="${-hd + 42}" rx="17" ry="23" fill="#fff" stroke="${col}" stroke-width="1" ${ns}/><ellipse cx="0" cy="${-hd + 44}" rx="10" ry="15" fill="url(#gWater)" stroke="${col}" stroke-width=".8" ${ns}/>`;
+    case 'hood': return Ln(-hw, -hd, hw, hd, `stroke="${col}" stroke-width="1" stroke-dasharray="6 4" ${ns}`) + Ln(hw, -hd, -hw, hd, `stroke="${col}" stroke-width="1" stroke-dasharray="6 4" ${ns}`);
+    case 'trench': { let s = ''; for (let x = -hw + 6; x < hw; x += 6) s += Ln(x, -hd + 3, x, hd - 3, `stroke="#56656E" stroke-width="1" ${ns}`); return s; }
+  }
+  // 'none'：工作台、桌面、櫃台 → 檯面內框（座位類是木頭桌面）
+  if (it.round) return `<ellipse cx="0" cy="0" rx="${Math.max(0, hw - 5)}" ry="${Math.max(0, hd - 5)}" fill="none" ${thin} stroke-opacity=".5"/>`;
+  return R(-hw + 4, -hd + 4, w - 8, d - 8, `rx="2" fill="none" ${thin} stroke-opacity=".45"`);
+}
+
+// 每個分類的底色（不鏽鋼用金屬漸層、座位用木頭色）
+const CAT_FILL = { cold: '#E6F1FC', prep: 'url(#gSteel)', hot: 'url(#gSteel)', bar: '#F3EAF8', front: '#FFF1DE', seat: 'url(#gWood)', store: '#F4ECE5', struct: '#ECEFF1', custom: '#F1F1EA' };
+
+function equipSVG(it, warnIds) {
+  const col = colorOf(it), bad = warnIds.has(it.id);
+  const tf = `translate(${it.cx} ${it.cy}) rotate(${it.rot || 0})`;
+  const strokeCol = bad ? '#E0483E' : col, sw = bad ? 2.4 : 1.6;
+  const fill = it.color ? it.color : (CAT_FILL[it.cat] || '#F1F1EA');
+  const fo = it.color ? ' fill-opacity=".16"' : '';
+  const sh = it.over || it.floor ? '' : ' filter="url(#fSh)"';
+  const rx = Math.min(4, it.w * .06, it.d * .06);
+  let body;
+  if (it.round) body = `<ellipse cx="0" cy="0" rx="${it.w / 2}" ry="${it.d / 2}" fill="${fill}"${fo} stroke="${strokeCol}" stroke-width="${sw}" ${NS}${sh}/>`;
+  else if (it.over) body = `<rect x="${-it.w / 2}" y="${-it.d / 2}" width="${it.w}" height="${it.d}" fill="${col}" fill-opacity=".04" stroke="${strokeCol}" stroke-width="${sw}" stroke-dasharray="8 5" ${NS}/>`;
+  else if (it.sym === 'col') body = `<rect x="${-it.w / 2}" y="${-it.d / 2}" width="${it.w}" height="${it.d}" fill="url(#pHatch)" stroke="${strokeCol}" stroke-width="${sw}" ${NS}/>`;
+  else body = `<rect x="${-it.w / 2}" y="${-it.d / 2}" width="${it.w}" height="${it.d}" rx="${rx}" fill="${it.floor ? '#ECEFF1' : fill}"${fo} stroke="${strokeCol}" stroke-width="${sw}" ${NS}${sh}/>`;
+  return `<g data-id="${it.id}" transform="${tf}" style="cursor:move">${body}${symSVG(it, col)}</g>`;
+}
+
+function openSVG(it, t) {
+  const w = it.w, h = w / 2, col = OPEN_COLOR;
+  const st = `stroke="${col}" fill="none" stroke-width="1.3" ${NS}`;
+  let s = `<rect x="${-h}" y="${-t - 1}" width="${w}" height="${t + 2}" fill="#fff"/>`;
+  // 牆的斷面端線
+  s += `<line x1="${-h}" y1="${-t}" x2="${-h}" y2="0" stroke="#D86A2C" stroke-width="1.4" ${NS}/><line x1="${h}" y1="${-t}" x2="${h}" y2="0" stroke="#D86A2C" stroke-width="1.4" ${NS}/>`;
+  const sgn = it.out ? -1 : 1, by = it.out ? -t : 0;
+  const leaf = (hx, len, dir) => { // hx 鉸鍊位置；dir 門關上時往哪邊（+1 往右）
+    const C = [hx, by], P1 = [hx, by + sgn * len], P2 = [hx + dir * len, by];
+    const a1 = Math.atan2(P1[1] - C[1], P1[0] - C[0]), a2 = Math.atan2(P2[1] - C[1], P2[0] - C[0]);
+    let df = a2 - a1; while (df > Math.PI) df -= 2 * Math.PI; while (df <= -Math.PI) df += 2 * Math.PI;
+    return `<line x1="${C[0]}" y1="${C[1]}" x2="${P1[0]}" y2="${P1[1]}" stroke="${col}" stroke-width="2" ${NS}/>` +
+      `<path d="M${P1[0]} ${P1[1]} A${len} ${len} 0 0 ${df > 0 ? 1 : 0} ${P2[0]} ${P2[1]}" ${st} stroke-dasharray="4 3"/>`;
+  };
+  switch (it.ot) {
+    case 'door': s += it.flip ? leaf(h, w, -1) : leaf(-h, w, 1); break;
+    case 'door2': s += leaf(-h, h, 1) + leaf(h, h, -1); break;
+    case 'slide': s += `<rect x="${-h}" y="${-t * .72}" width="${w * .55}" height="${t * .22}" ${st}/><rect x="${h - w * .55}" y="${-t * .5}" width="${w * .55}" height="${t * .22}" ${st}/>`; break;
+    case 'window': s += `<rect x="${-h}" y="${-t}" width="${w}" height="${t}" ${st}/><line x1="${-h}" y1="${-t / 2}" x2="${h}" y2="${-t / 2}" ${st}/>`; break;
+    case 'shutter': s += `<line x1="${-h}" y1="${-t / 2}" x2="${h}" y2="${-t / 2}" stroke="${col}" stroke-width="2.4" stroke-dasharray="10 5" ${NS}/>`; break;
+  }
+  return `<g data-id="${it.id}" transform="translate(${it.cx} ${it.cy}) rotate(${it.rot || 0})" style="cursor:move"><rect x="${-h}" y="${-t - 4}" width="${w}" height="${t + 8}" fill="transparent"/>${s}</g>`;
+}
+
+function markSVG(it) {
+  const m = MARKS.find(x => x[0] === it.mk) || MARKS[0], col = m[3], r = it.w / 2;
+  const fs = m[2].length > 1 ? r * .78 : r * 1.1;
+  return `<g data-id="${it.id}" transform="translate(${it.cx} ${it.cy})" style="cursor:move">
+    <circle r="${r}" fill="#fff" stroke="${col}" stroke-width="1.8" ${NS}/>
+    <text font-size="${fs}" text-anchor="middle" dominant-baseline="central" fill="${col}" font-weight="800">${m[2]}</text></g>`;
+}
+
+function textSVG(it) {
+  return `<g data-id="${it.id}" transform="translate(${it.cx} ${it.cy}) rotate(${it.rot || 0})" style="cursor:move">
+    <rect x="${-it.w / 2}" y="${-it.d / 2}" width="${it.w}" height="${it.d}" fill="transparent"/>
+    <text font-size="${it.fs}" text-anchor="middle" dominant-baseline="central" fill="${it.color || '#1A1A16'}" font-weight="800">${esc(it.text)}</text></g>`;
+}
+
+// 設備名稱：一律正著放，字級跟著設備大小縮
+function labelSVG(it) {
+  const B = aabb(it), bw = B.r - B.l, bh = B.b - B.t, cx = (B.l + B.r) / 2, cy = (B.t + B.b) / 2;
+  const size = it.round ? `Ø${fmt(it.w)}` : `${fmt(it.w)}×${fmt(it.d)}`;
+  const lines = [it.name];
+  if (S.set.sizes) lines.push(size);
+  // 名稱做成白色小標籤：字不要大到蓋掉設備圖示
+  let fs = Math.min(10.5, (bw - 10) / textW(it.name, 1), (bh - 6) / (lines.length * 1.25 + .5));
+  if (lines.length === 2 && fs < 6) { lines.pop(); fs = Math.min(10.5, (bw - 10) / textW(it.name, 1), (bh - 6) / 1.75); }
+  if (it.over) { // 上方設備：小字貼在框的下緣
+    const f = Math.min(10, (bw - 4) / textW(it.name, 1));
+    return f < 4 ? '' : `<text x="${cx}" y="${B.b - f * .9}" font-size="${f}" text-anchor="middle" dominant-baseline="central" fill="#8a8a82" font-weight="700" stroke="#fff" stroke-width="${f * .25}" paint-order="stroke">${esc(it.name)}（${size}）</text>`;
+  }
+  if (fs < 4.5) return '';
+  const tw = Math.max(textW(lines[0], fs), lines[1] ? textW(lines[1], fs * .82) : 0) + fs * .9;
+  const th = fs * 1.25 * lines.length + fs * .35;
+  let s = `<rect x="${cx - tw / 2}" y="${cy - th / 2}" width="${tw}" height="${th}" rx="${fs * .45}" fill="#fff" fill-opacity=".88" stroke="${colorOf(it)}" stroke-opacity=".35" stroke-width=".8" ${NS}/>`;
+  lines.forEach((t, i) => {
+    const y = cy + (i - (lines.length - 1) / 2) * fs * 1.25;
+    const f = i === 0 ? fs : fs * .82;
+    s += `<text x="${cx}" y="${y}" font-size="${f}" text-anchor="middle" dominant-baseline="central" fill="${i ? '#6a6a62' : '#1A1A16'}" font-weight="${i ? 500 : 700}">${esc(t)}</text>`;
+  });
+  return s;
+}
+
+/* 整張圖：ui = { s: 每公分幾 px, k: 字與線的放大倍數, screen: 是否為畫面（有格線、選取框）} */
+function sceneSVG(ui, opt = {}) {
+  const g = G, px = ui.k / ui.s;
+  const warnIds = new Set();
+  if (opt.warn) WARNS.forEach(w => { if (w.type !== 'aisle') w.ids.forEach(i => warnIds.add(i)); });
+  let s = '';
+  // 格線
+  if (ui.screen && S.set.grid) {
+    const r = $('#svg').getBoundingClientRect();
+    const x0 = -V.ox / V.s, y0 = -V.oy / V.s, ww = r.width / V.s, hh = r.height / V.s;
+    s += `<rect x="${x0}" y="${y0}" width="${ww}" height="${hh}" fill="url(#pGrid)" pointer-events="none"/><rect x="${x0}" y="${y0}" width="${ww}" height="${hh}" fill="url(#pGrid2)" pointer-events="none"/>`;
+  }
+  const drawing = ui.screen && MODE === 'wall';
+  if (g.ok) {
+    const poly = P => P.map(p => p.join(',')).join(' ');
+    s += drawing ? '<g opacity=".25">' : '<g>';   // 正在畫新牆時，舊的牆淡掉
+    s += `<polygon points="${poly(g.pts)}" fill="#fff"/>`;
+    if (g.t > 0) s += `<path d="M${g.outer.map(p => p.join(' ')).join('L')}Z M${g.pts.map(p => p.join(' ')).join('L')}Z" fill="url(#pWall)" fill-rule="evenodd" stroke="#D86A2C" stroke-width="1.4" ${NS}/>`;
+    else s += `<polygon points="${poly(g.pts)}" fill="none" stroke="#D86A2C" stroke-width="2" ${NS}/>`;
+    s += '</g>';
+  }
+  const items = S.items;
+  // 地面層（排水溝）→ 設備 → 上方設備（排煙罩）→ 門窗 → 孔位 → 文字
+  for (const it of items) if (isEquip(it) && it.floor) s += equipSVG(it, warnIds);
+  for (const it of items) if (isEquip(it) && !it.floor && !it.over) s += equipSVG(it, warnIds);
+  for (const it of items) if (isEquip(it) && it.over) s += equipSVG(it, warnIds);
+  for (const it of items) if (it.t === 'open') s += openSVG(it, g.t || 10);
+  if (S.set.labels) { s += '<g pointer-events="none">'; for (const it of items) if (isEquip(it)) s += labelSVG(it); s += '</g>'; }
+  for (const it of items) if (it.t === 'mark') s += markSVG(it);
+  for (const it of items) if (it.t === 'text') s += textSVG(it);
+  // 自己量的尺寸
+  for (const it of items) if (it.t === 'dim') {
+    const sel = ui.screen && SEL.includes(it.id);
+    s += `<g data-id="${it.id}" style="cursor:move"><line x1="${it.x1}" y1="${it.y1}" x2="${it.x2}" y2="${it.y2}" stroke="transparent" stroke-width="${12 * px}"/>${dimSVG(it.x1, it.y1, it.x2, it.y2, 0, fmt(Math.hypot(it.x2 - it.x1, it.y2 - it.y1)), sel ? '#7FA000' : '#1E7FD8', ui, { w: sel ? 2 : 1.2, fs: 12 })}</g>`;
+  }
+  // 牆面尺寸（室內淨尺寸）
+  if (g.ok && !drawing) {
+    const off = g.t + 24 * px, canEdit = ui.screen && MODE === 'select' && !VIEWONLY;
+    for (const e of g.edges) {
+      const sg = (-e.uy * e.nx + e.ux * e.ny) > 0 ? 1 : -1;
+      const d = dimSVG(e.a[0], e.a[1], e.b[0], e.b[1], sg * off, fmt(e.len), '#2E7D32', ui, { fs: 12, pill: canEdit });
+      s += canEdit ? `<g data-wall="${e.i}" style="cursor:pointer"><title>點一下改這面牆的長度</title>${d}</g>` : d;
+    }
+    // 不是矩形時，多標一組總寬總深
+    if (g.pts.length > 4) {
+      const xs = g.pts.map(p => p[0]), ys = g.pts.map(p => p[1]);
+      const l = Math.min(...xs), r = Math.max(...xs), t = Math.min(...ys), b = Math.max(...ys), o2 = g.t + 52 * px;
+      s += dimSVG(l, t, r, t, -o2, '總寬 ' + fmt(r - l), '#2E7D32', ui, { fs: 12 });
+      s += dimSVG(l, b, l, t, -o2, '總深 ' + fmt(b - t), '#2E7D32', ui, { fs: 12 });
+    }
+  }
+  // 牆角角度：畫面上在「空間」分頁才顯示（可點），輸出圖看選項
+  if (g.ok && !drawing) {
+    if (ui.screen) { if (MODE === 'select' && TAB === 'room' && !VIEWONLY) s += anglesSVG(ui, true); }
+    else if (opt.angles) s += anglesSVG(ui, false);
+  }
+  // 走道警示
+  if (opt.warn) for (const w of WARNS) if (w.type === 'aisle') s += dimSVG(w.p1[0], w.p1[1], w.p2[0], w.p2[1], 0, `走道 ${fmt(w.gap)}`, '#E0483E', ui, { w: 2, dash: 1, fs: 11 });
+
+  if (ui.screen) {
+    // 選到單一設備：標出離牆／離設備的距離
+    if (S.set.dims && SEL.length === 1) { const it = byId(SEL[0]); if (it && (isEquip(it) || it.t === 'text' || it.t === 'mark')) s += clearSVG(it, ui); }
+    // 選取框與把手
+    for (const id of SEL) { const it = byId(id); if (it && it.t !== 'dim') s += selSVG(it, ui, SEL.length === 1); }
+    // 吸附參考線：綠色虛線連到對齊的牆或設備，被對齊的設備亮綠框
+    const px0 = 1 / V.s;
+    GUIDES.forEach((gd, k) => {
+      const ext = 14 * px0;
+      if (gd.x != null) s += `<line x1="${gd.x}" y1="${gd.y1 - ext}" x2="${gd.x}" y2="${gd.y2 + ext}" stroke="#7FA000" stroke-width="1.6" stroke-dasharray="6 4" ${NS} pointer-events="none"/>`;
+      if (gd.y != null) s += `<line x1="${gd.x1 - ext}" y1="${gd.y}" x2="${gd.x2 + ext}" y2="${gd.y}" stroke="#7FA000" stroke-width="1.6" stroke-dasharray="6 4" ${NS} pointer-events="none"/>`;
+      if (gd.id) { const o = byId(gd.id); if (o) { const B = aabb(o); s += `<rect x="${B.l - 2 * px0}" y="${B.t - 2 * px0}" width="${B.r - B.l + 4 * px0}" height="${B.b - B.t + 4 * px0}" fill="#C3F000" fill-opacity=".12" stroke="#7FA000" stroke-width="2" ${NS} pointer-events="none"/>`; } }
+      if (gd.label && gd.at) s += pill(gd.at[0] + 10 * px0 + textW(gd.label, 13 * px0) / 2 + 8 * px0, gd.at[1] + (k ? 16 : -16) * px0, gd.label, { k: 1, s: V.s }, '#fff', '#7FA000');
+    });
+    // 牆角把手（在「空間」分頁時才出現）：拖圓點改形狀、拖 ＋ 多一個轉角
+    if (MODE === 'select' && TAB === 'room' && !VIEWONLY && S.room.pts && S.room.pts.length >= 3) {
+      const P = S.room.pts, r = 7 * px;
+      P.forEach((a, i) => {
+        const b = P[(i + 1) % P.length], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+        if (Math.hypot(b[0] - a[0], b[1] - a[1]) * V.s > 50)
+          s += `<g data-vm="${i}" style="cursor:copy"><title>拖拉這裡，多加一個轉角</title><circle cx="${mx}" cy="${my}" r="${r * .85}" fill="#fff" stroke="#D86A2C" stroke-width="1.4" ${NS}/><path d="M${mx - r * .45} ${my}H${mx + r * .45}M${mx} ${my - r * .45}V${my + r * .45}" stroke="#D86A2C" stroke-width="1.6" ${NS}/></g>`;
+      });
+      P.forEach((a, i) => s += `<circle data-v="${i}" cx="${a[0]}" cy="${a[1]}" r="${r}" fill="#D86A2C" stroke="#fff" stroke-width="2" ${NS} style="cursor:move"><title>拖拉牆角改形狀（雙擊刪掉這個角）</title></circle>`);
+    }
+    // 拉線畫牆的預覽
+    if (drawing) s += wallPreviewSVG(ui);
+    // 量尺寸預覽
+    if (MODE === 'dim') {
+      if (DIMA && DIMP) s += dimSVG(DIMA[0], DIMA[1], DIMP[0], DIMP[1], 0, fmt(Math.hypot(DIMP[0] - DIMA[0], DIMP[1] - DIMA[1])), '#E07B00', ui, { w: 1.6, fs: 12 });
+      for (const p of [DIMA, DIMP]) if (p) s += `<circle cx="${p[0]}" cy="${p[1]}" r="${4 * px}" fill="#E07B00" pointer-events="none"/>`;
+    }
+  }
+  return s;
+}
+
+function selSVG(it, ui, handles) {
+  const px = ui.k / ui.s, hw = it.w / 2 + 3 * px, hd = it.d / 2 + 3 * px;
+  let s = `<g transform="translate(${it.cx} ${it.cy}) rotate(${it.t === 'mark' ? 0 : it.rot || 0})" pointer-events="none">`;
+  if (it.t === 'mark') s += `<circle r="${it.w / 2 + 4 * px}" fill="none" stroke="#7FA000" stroke-width="2" stroke-dasharray="5 3" ${NS}/>`;
+  else s += `<rect x="${-hw}" y="${-hd}" width="${hw * 2}" height="${hd * 2}" fill="none" stroke="#7FA000" stroke-width="2" stroke-dasharray="5 3" ${NS}/>`;
+  s += '</g>';
+  if (handles && isEquip(it)) {
+    const a = (it.rot || 0) * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a);
+    const at = (x, y) => [it.cx + x * c - y * sn, it.cy + x * sn + y * c];
+    const r = 7 * px, rr = at(0, -hd - 22 * px), top = at(0, -hd);
+    s += `<line x1="${top[0]}" y1="${top[1]}" x2="${rr[0]}" y2="${rr[1]}" stroke="#7FA000" stroke-width="1.4" ${NS} pointer-events="none"/>`;
+    s += `<circle data-h="rot" cx="${rr[0]}" cy="${rr[1]}" r="${r}" fill="#C3F000" stroke="#1A1A16" stroke-width="1.4" ${NS} style="cursor:grab"><title>拖拉旋轉（按住 Shift 可自由角度）</title></circle>`;
+    const hwH = at(it.w / 2, 0), hdH = at(0, it.d / 2);
+    s += `<rect data-h="rw" x="${hwH[0] - r}" y="${hwH[1] - r}" width="${r * 2}" height="${r * 2}" rx="${2 * px}" fill="#fff" stroke="#1A1A16" stroke-width="1.4" ${NS} style="cursor:ew-resize"><title>拖拉改寬度</title></rect>`;
+    if (!it.round) s += `<rect data-h="rd" x="${hdH[0] - r}" y="${hdH[1] - r}" width="${r * 2}" height="${r * 2}" rx="${2 * px}" fill="#fff" stroke="#1A1A16" stroke-width="1.4" ${NS} style="cursor:ns-resize"><title>拖拉改深度</title></rect>`;
+  }
+  return s;
+}
+
+// 選到的設備往上下左右找最近的牆或設備，標出距離
+function clearSVG(it, ui) {
+  if (!G.ok) return '';
+  const A = aabb(it), cx = (A.l + A.r) / 2, cy = (A.t + A.b) / 2;
+  const others = S.items.filter(o => o.id !== it.id && isSolid(o)).map(aabb);
+  const res = { l: Infinity, r: Infinity, t: Infinity, b: Infinity };
+  for (const B of others) {
+    if (B.b > A.t + .5 && B.t < A.b - .5) { if (B.r <= A.l + .5) res.l = Math.min(res.l, A.l - B.r); if (B.l >= A.r - .5) res.r = Math.min(res.r, B.l - A.r); }
+    if (B.r > A.l + .5 && B.l < A.r - .5) { if (B.b <= A.t + .5) res.t = Math.min(res.t, A.t - B.b); if (B.t >= A.b - .5) res.b = Math.min(res.b, B.t - A.b); }
+  }
+  for (const e of G.edges) {
+    const [x1, y1] = e.a, [x2, y2] = e.b;
+    if ((y1 - cy) * (y2 - cy) <= 0 && Math.abs(y2 - y1) > 1e-6) {
+      const x = x1 + (cy - y1) * (x2 - x1) / (y2 - y1);
+      if (x <= A.l + .5) res.l = Math.min(res.l, A.l - x); if (x >= A.r - .5) res.r = Math.min(res.r, x - A.r);
+    }
+    if ((x1 - cx) * (x2 - cx) <= 0 && Math.abs(x2 - x1) > 1e-6) {
+      const y = y1 + (cx - x1) * (y2 - y1) / (x2 - x1);
+      if (y <= A.t + .5) res.t = Math.min(res.t, A.t - y); if (y >= A.b - .5) res.b = Math.min(res.b, y - A.b);
+    }
+  }
+  const col = '#E07B00';
+  let s = '<g pointer-events="none">';
+  if (isFinite(res.l) && res.l > .5) s += dimSVG(A.l - res.l, cy, A.l, cy, 0, fmt(res.l), col, ui, { dash: 1, fs: 12 });
+  if (isFinite(res.r) && res.r > .5) s += dimSVG(A.r, cy, A.r + res.r, cy, 0, fmt(res.r), col, ui, { dash: 1, fs: 12 });
+  if (isFinite(res.t) && res.t > .5) s += dimSVG(cx, A.t - res.t, cx, A.t, 0, fmt(res.t), col, ui, { dash: 1, fs: 12 });
+  if (isFinite(res.b) && res.b > .5) s += dimSVG(cx, A.b, cx, A.b + res.b, 0, fmt(res.b), col, ui, { dash: 1, fs: 12 });
+  return s + '</g>';
+}
+
+/* ================= 畫面更新 ================= */
+const svg = $('#svg'), world = $('#world');
+$('#defs').innerHTML = defsSVG();
+
+function render() {
+  G = roomGeo();
+  runChecks();
+  world.setAttribute('transform', `translate(${V.ox} ${V.oy}) scale(${V.s})`);
+  world.innerHTML = sceneSVG({ s: V.s, k: 1, screen: true }, { warn: S.set.aisle });
+  $('#zoomLbl').textContent = Math.round(V.s * 100) + '%';
+  renderStatus();
+  renderWarns();
+  renderList();
+  $('#bUndo').disabled = !UNDO.length; $('#bRedo').disabled = !REDO.length;
+  for (const [id, k] of [['tGrid', 'grid'], ['tSnap', 'snap'], ['tDims', 'dims'], ['tAisle', 'aisle']]) $('#' + id).classList.toggle('on', !!S.set[k]);
+}
+// 畫牆時目前這一筆的長度、傾斜角、和上一面牆的夾角
+function wallLive() {
+  if (MODE !== 'wall' || !WD || !WP.length) return null;
+  const a = WP[WP.length - 1], L = Math.hypot(WD[0] - a[0], WD[1] - a[1]); if (L < .5) return null;
+  let tilt = -Math.atan2(WD[1] - a[1], WD[0] - a[0]) * 180 / Math.PI; // 數學習慣：往右 0°、往上 90°
+  tilt = ((tilt % 360) + 360) % 360;
+  let between = null;
+  if (WP.length >= 2) {
+    const p = WP[WP.length - 2], ux = p[0] - a[0], uy = p[1] - a[1], vx = WD[0] - a[0], vy = WD[1] - a[1];
+    between = Math.acos(clamp((ux * vx + uy * vy) / Math.hypot(ux, uy) / L, -1, 1)) * 180 / Math.PI;
+  }
+  return { L, tilt, between };
+}
+function renderStatus() {
+  const wl = wallLive();
+  if (wl && !VIEWONLY) {
+    // 傾斜改成白話：水平／垂直，或「↗ 斜 30°」（跟水平線差幾度）
+    const t = wl.tilt, h = Math.round(Math.min(t % 180, 180 - t % 180) * 10) / 10;
+    const arrow = ['→', '↗', '↑', '↖', '←', '↙', '↓', '↘'][Math.round(t / 45) % 8];
+    const tiltTxt = h < .05 ? `${arrow} 水平` : Math.abs(h - 90) < .05 ? `${arrow} 垂直` : `${arrow} 斜 ${fmt(h)}°`;
+    $('#status').innerHTML = `✏️ 這面牆 長 <b>${fmt(wl.L)}</b> 公分　｜　方向 <b>${tiltTxt}</b>${wl.between != null ? `　｜　和上一面牆夾角 <b>${fmt(Math.round(wl.between * 10) / 10)}°</b>` : ''}　｜　按住 Shift 可自由角度`;
+    return;
+  }
+  const c = CURSOR ? `游標 x <b>${fmt(CURSOR[0])}</b>　y <b>${fmt(CURSOR[1])}</b> 公分` : '單位：公分';
+  const n = S.items.filter(isEquip).length;
+  $('#status').innerHTML = VIEWONLY ? `設備 ${n} 件　｜　兩指縮放、拖曳移動` : `${c}　｜　設備 ${n} 件　｜　拖空白處移動畫面、滾輪縮放`;
+}
+
+/* ================= 視圖：縮放平移 ================= */
+function contentBounds() {
+  let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+  const add = (x, y) => { l = Math.min(l, x); r = Math.max(r, x); t = Math.min(t, y); b = Math.max(b, y); };
+  if (G && G.ok) G.outer.concat(G.pts).forEach(p => add(p[0], p[1]));
+  for (const it of S.items) { const B = aabb(it); add(B.l, B.t); add(B.r, B.b); }
+  if (!isFinite(l)) { l = 0; t = 0; r = 600; b = 400; }
+  return { l, t, r, b };
+}
+function fitView() {
+  G = roomGeo();
+  const B = contentBounds(), rc = svg.getBoundingClientRect();
+  if (!rc.width) return;
+  const pad = 70;
+  V.s = clamp(Math.min((rc.width - pad * 2) / (B.r - B.l || 1), (rc.height - pad * 2) / (B.b - B.t || 1)), .05, 8);
+  V.ox = rc.width / 2 - (B.l + B.r) / 2 * V.s;
+  V.oy = rc.height / 2 - (B.t + B.b) / 2 * V.s;
+  render();
+}
+function zoomAt(f, sx, sy) {
+  const ns = clamp(V.s * f, .05, 8);
+  V.ox = sx - (sx - V.ox) * ns / V.s; V.oy = sy - (sy - V.oy) * ns / V.s; V.s = ns;
+  render();
+}
+function toWorld(e) { const r = svg.getBoundingClientRect(); return [(e.clientX - r.left - V.ox) / V.s, (e.clientY - r.top - V.oy) / V.s]; }
+function viewCenter() { const r = svg.getBoundingClientRect(); return [(r.width / 2 - V.ox) / V.s, (r.height / 2 - V.oy) / V.s]; }
+
+/* ================= 復原／重做 ================= */
+const snap = () => JSON.stringify({ meta: S.meta, room: S.room, items: S.items, custom: S.custom });
+function restore(str) { const o = JSON.parse(str); Object.assign(S, o); SEL = SEL.filter(id => byId(id)); }
+function commit(fn, opt = {}) {
+  const pre = snap(); fn();
+  if (snap() !== pre) { UNDO.push(pre); if (UNDO.length > 120) UNDO.shift(); REDO = []; DIRTY = true; }
+  refresh(opt);
+}
+function refresh(opt = {}) { render(); renderProps(); if (opt.room) renderRoom(); if (opt.lib) renderLib(); }
+function undo() { if (!UNDO.length) return; REDO.push(snap()); restore(UNDO.pop()); refresh({ room: 1, lib: 1 }); }
+function redo() { if (!REDO.length) return; UNDO.push(snap()); restore(REDO.pop()); refresh({ room: 1, lib: 1 }); }
+
+/* ================= 新增物件 ================= */
+function placeNew(it) {
+  const c = viewCenter();
+  let cx = c[0], cy = c[1];
+  if (G && G.ok) { // 畫面中心不在店裡就放到店中間
+    if (!inPoly([cx, cy], G.pts)) { const B = contentBounds(); cx = (B.l + B.r) / 2; cy = (B.t + B.b) / 2; }
+  }
+  // 跟現有物件錯開一點，避免疊在一起看不出來
+  let n = 0; while (n < 12 && S.items.some(o => o.t === it.t && Math.abs(o.cx - cx) < 1 && Math.abs(o.cy - cy) < 1)) { cx += 15; cy += 15; n++; }
+  it.cx = Math.round(cx); it.cy = Math.round(cy);
+  if (it.t === 'open') snapToWall(it, cx, cy);
+  commit(() => S.items.push(it));
+  SEL = [it.id]; MODE = 'select'; setMode('select');
+  refresh();
+  if (window.matchMedia('(max-width:1099px)').matches) { /* 平板：留在原分頁，屬性在第 4 頁 */ }
+}
+function addLib(i) {
+  const [cat, name, w, d, sym, ex = {}] = LIB[i];
+  placeNew({ id: uid(), t: 'equip', cat, name, w, d, sym, rot: 0, note: '', ...(ex.round ? { round: 1 } : {}), ...(ex.over ? { over: 1 } : {}), ...(ex.floor ? { floor: 1 } : {}) });
+}
+function addCustom(c) { placeNew({ id: uid(), t: 'equip', cat: c.cat || 'custom', name: c.name, w: c.w, d: c.d, sym: c.sym || 'none', rot: 0, note: '', ...(c.round ? { round: 1 } : {}), ...(c.color ? { color: c.color } : {}) }); }
+function addOpen(i) { const [ot, name, w] = OPENS[i]; placeNew({ id: uid(), t: 'open', ot, name, w, d: 15, rot: 0, flip: 0, out: 0 }); }
+function addMark(i) { const [mk, name] = MARKS[i]; placeNew({ id: uid(), t: 'mark', mk, name, w: 22, d: 22, rot: 0, note: '' }); }
+function addText() { const it = { id: uid(), t: 'text', text: '文字', fs: 24, rot: 0 }; sizeText(it); placeNew(it); }
+function sizeText(it) { it.w = Math.max(20, textW(it.text || ' ', it.fs) + 6); it.d = it.fs * 1.4; }
+
+/* ================= 拖拉與吸附 ================= */
+function unionBox(ids) {
+  let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+  for (const id of ids) { const B = aabb(byId(id)); l = Math.min(l, B.l); t = Math.min(t, B.t); r = Math.max(r, B.r); b = Math.max(b, B.b); }
+  return { l, t, r, b };
+}
+function snapDelta(box, dx, dy, ids, noMag) {
+  GUIDES = [];
+  const tol = 10 / V.s;
+  let bx = null, by = null;
+  if (S.set.snap && !noMag) {
+    // 參考目標：牆面（水平／垂直的牆）、其他設備的邊與中線；lo/hi 是那個東西的範圍，用來畫虛線
+    const xs = [], ys = [];
+    if (G.ok) for (const e of G.edges) {
+      if (Math.abs(e.ux) < 1e-6) xs.push({ v: e.a[0], lo: Math.min(e.a[1], e.b[1]), hi: Math.max(e.a[1], e.b[1]), name: '牆面', wall: 1 });
+      if (Math.abs(e.uy) < 1e-6) ys.push({ v: e.a[1], lo: Math.min(e.a[0], e.b[0]), hi: Math.max(e.a[0], e.b[0]), name: '牆面', wall: 1 });
+    }
+    for (const o of S.items) if (!ids.includes(o.id) && isEquip(o)) {
+      const B = aabb(o);
+      xs.push({ v: B.l, lo: B.t, hi: B.b, name: o.name, id: o.id }, { v: B.r, lo: B.t, hi: B.b, name: o.name, id: o.id }, { v: (B.l + B.r) / 2, lo: B.t, hi: B.b, name: o.name, id: o.id, mid: 1 });
+      ys.push({ v: B.t, lo: B.l, hi: B.r, name: o.name, id: o.id }, { v: B.b, lo: B.l, hi: B.r, name: o.name, id: o.id }, { v: (B.t + B.b) / 2, lo: B.l, hi: B.r, name: o.name, id: o.id, mid: 1 });
+    }
+    const mx = [box.l + dx, box.r + dx, (box.l + box.r) / 2 + dx], my = [box.t + dy, box.b + dy, (box.t + box.b) / 2 + dy];
+    const pick = (tg, mv) => { let best = null;
+      for (const t of tg) mv.forEach((e, k) => {
+        if ((k === 2) !== !!t.mid) return;             // 中線只跟中線對齊，邊跟邊對齊
+        const d = t.v - e; if (Math.abs(d) < tol && (!best || Math.abs(d) < Math.abs(best.d) - .01)) best = { d, t, mid: k === 2 };
+      });
+      return best; };
+    bx = pick(xs, mx); by = pick(ys, my);
+  }
+  dx = bx ? dx + bx.d : Math.round(box.l + dx) - box.l;
+  dy = by ? dy + by.d : Math.round(box.t + dy) - box.t;
+  // 虛線範圍：從對齊的東西一路連到正在拖的設備
+  const nb = { l: box.l + dx, r: box.r + dx, t: box.t + dy, b: box.b + dy };
+  if (bx) GUIDES.push({ x: bx.t.v, y1: Math.min(bx.t.lo, nb.t), y2: Math.max(bx.t.hi, nb.b), id: bx.t.id, label: (bx.mid ? '中線對齊 ' : '靠齊 ') + bx.t.name, at: [nb.r, nb.t] });
+  if (by) GUIDES.push({ y: by.t.v, x1: Math.min(by.t.lo, nb.l), x2: Math.max(by.t.hi, nb.r), id: by.t.id, label: (by.mid ? '中線對齊 ' : '靠齊 ') + by.t.name, at: [nb.r, nb.b] });
+  return [dx, dy];
+}
+// 量尺寸時的吸附點：牆角、設備角
+function snapPoint(p) {
+  const tol = 12 / V.s; let best = null;
+  const tryP = q => { const d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < tol && (!best || d < best.d)) best = { d, q }; };
+  if (G.ok) G.pts.forEach(tryP);
+  for (const it of S.items) if (isEquip(it)) corners(it).forEach(tryP);
+  return best ? best.q.map(r1) : [Math.round(p[0]), Math.round(p[1])];
+}
+
+/* ================= 拉線畫牆 ================= */
+function startWall() {
+  WP = []; WD = null; SEL = [];
+  setMode('wall'); renderProps();
+}
+// 算出拉到哪裡：接近水平／垂直／45 度就自動拉直，靠近起點就自動接回去
+function wallEnd(p, free) {
+  WSNAP = null;
+  if (!WP.length) return [Math.round(p[0] / 5) * 5, Math.round(p[1] / 5) * 5];
+  const a = WP[WP.length - 1], f = WP[0];
+  if (WP.length >= 3 && Math.hypot(p[0] - f[0], p[1] - f[1]) < 16 / V.s) return [f[0], f[1]];
+  let dx = p[0] - a[0], dy = p[1] - a[1], L = Math.hypot(dx, dy);
+  if (L < 1) return [a[0], a[1]];
+  let ang = Math.atan2(dy, dx) * 180 / Math.PI;
+  if (!free) {
+    const near = Math.round(ang / 45) * 45;
+    if (Math.abs(ang - near) < 9) ang = near;
+    L = Math.round(L / 5) * 5;  // 拉線時每 5 公分一跳，之後再點數字改精準
+  }
+  const rad = ang * Math.PI / 180;
+  let q = [a[0] + Math.cos(rad) * L, a[1] + Math.sin(rad) * L];
+  // 對齊前面的牆角：沿著目前方向滑動，找「x 或 y 跟某個舊牆角一樣」的位置，夠近就吸過去
+  if (!free) {
+    const cx = Math.cos(rad), cy = Math.sin(rad), tol = 12 / V.s;
+    let best = null;
+    WP.slice(0, -1).forEach(P => {
+      for (const ax of [0, 1]) {
+        const c = ax ? cy : cx; if (Math.abs(c) < 1e-6) continue;
+        const t = (P[ax] - a[ax]) / c; if (t <= 1) continue;
+        const cand = [a[0] + cx * t, a[1] + cy * t], d = Math.hypot(cand[0] - q[0], cand[1] - q[1]);
+        const far = Math.hypot(P[0] - cand[0], P[1] - cand[1]); // 一樣近時，虛線連到比較近的那個牆角
+        if (d < tol && (!best || d < best.d - .01 || (Math.abs(d - best.d) <= .01 && far < best.far))) best = { d, cand, from: P, ax, far };
+      }
+    });
+    if (best) { q = best.cand; WSNAP = { from: best.from, ax: best.ax }; }
+  }
+  return [r1(q[0]), r1(q[1])];
+}
+function finishWall() {
+  if (WP.length < 3) { toast('至少要畫 3 面牆才圍得起來'); return; }
+  const pts = WP.slice();
+  WP = []; WD = null;
+  commit(() => { setRoomFromPts(pts); reSnapOpens(); }, { room: 1 });
+  setMode('select'); fitView();
+  toast('✓ 牆面畫好了！點牆上的<b>數字</b>可以改成量到的長度');
+}
+function cancelWall() { WP = []; WD = null; setMode('select'); }
+function pill(x, y, txt, ui, col = '#1A1A16', bg = '#C3F000') {
+  const px = ui.k / ui.s, fs = 13 * px, tw = textW(txt, fs) + fs * 1.2, th = fs * 1.7;
+  return `<g pointer-events="none"><rect x="${x - tw / 2}" y="${y - th / 2}" width="${tw}" height="${th}" rx="${th / 2}" fill="${bg}" stroke="#1A1A16" stroke-width="1" ${NS}/><text x="${x}" y="${y}" font-size="${fs}" text-anchor="middle" dominant-baseline="central" fill="${col}" font-weight="800">${esc(txt)}</text></g>`;
+}
+function wallPreviewSVG(ui) {
+  const px = ui.k / ui.s;
+  let s = '<g pointer-events="none">';
+  const pts = WP.slice(); if (WD && WP.length) pts.push(WD);
+  if (pts.length > 1) s += `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="#D86A2C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" ${NS}/>`;
+  // 已畫好的每面牆標長度
+  for (let i = 0; i < WP.length - 1; i++) { const a = WP[i], b = WP[i + 1]; s += pill((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, fmt(Math.hypot(b[0] - a[0], b[1] - a[1])), ui, '#1A1A16', '#fff'); }
+  // 正在拉的這面：大大的長度
+  if (WD && WP.length) { const a = WP[WP.length - 1], L = Math.hypot(WD[0] - a[0], WD[1] - a[1]); if (L > 0) { const wl = wallLive(); s += pill((a[0] + WD[0]) / 2, (a[1] + WD[1]) / 2 - 18 * px, `${fmt(L)} 公分${wl && wl.between != null ? `・夾角 ${fmt(Math.round(wl.between))}°` : ''}`, ui); } }
+  // 對齊提示：從對到的舊牆角拉一條綠色虛線到現在的位置
+  if (WSNAP && WD && WP.length) {
+    const F = WSNAP.from;
+    s += `<line x1="${F[0]}" y1="${F[1]}" x2="${WD[0]}" y2="${WD[1]}" stroke="#7FA000" stroke-width="1.6" stroke-dasharray="6 4" ${NS}/>`;
+    s += `<circle cx="${F[0]}" cy="${F[1]}" r="${10 * px}" fill="none" stroke="#7FA000" stroke-width="2" ${NS}/>`;
+    s += `<path d="M${WD[0] - 7 * px} ${WD[1]}H${WD[0] + 7 * px}M${WD[0]} ${WD[1] - 7 * px}V${WD[1] + 7 * px}" stroke="#7FA000" stroke-width="2" ${NS}/>`;
+    const lx = WSNAP.ax === 0 ? WD[0] + 34 * px : (F[0] + WD[0]) / 2, ly = WSNAP.ax === 0 ? (F[1] + WD[1]) / 2 : WD[1] - 16 * px;
+    s += pill(lx, ly, WSNAP.ax === 0 ? '↕ 上下對齊' : '↔ 左右對齊', ui, '#fff', '#7FA000');
+  }
+  // 起點：可以圍回來時放大提示
+  if (WP.length) {
+    const f = WP[0], closable = WP.length >= 3;
+    if (closable) s += `<circle cx="${f[0]}" cy="${f[1]}" r="${16 * px}" fill="#C3F000" fill-opacity=".35" stroke="#7FA000" stroke-width="2" stroke-dasharray="4 3" ${NS}/>` + pill(f[0], f[1] - 30 * px, '拉回這裡就圍起來', ui, '#1A1A16', '#fff');
+    WP.forEach((p, i) => s += `<circle cx="${p[0]}" cy="${p[1]}" r="${(i === WP.length - 1 ? 7 : 5) * px}" fill="${i === WP.length - 1 ? '#C3F000' : '#D86A2C'}" stroke="#1A1A16" stroke-width="1.5" ${NS}/>`);
+  } else if (WD) s += `<circle cx="${WD[0]}" cy="${WD[1]}" r="${6 * px}" fill="#C3F000" stroke="#1A1A16" stroke-width="1.5" ${NS}/>`;
+  return s + '</g>';
+}
+/* ================= 牆角角度 ================= */
+// 第 i 個牆角的內角（度）與畫弧線需要的資料
+function cornerInfo(i) {
+  const P = S.room.pts, n = P.length;
+  const A = P[(i - 1 + n) % n], B = P[i], C = P[(i + 1) % n];
+  let area = 0; for (let k = 0; k < n; k++) { const a = P[k], b = P[(k + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; }
+  const ux = A[0] - B[0], uy = A[1] - B[1], vx = C[0] - B[0], vy = C[1] - B[1];
+  const lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy); if (!lu || !lv) return null;
+  const turn = (B[0] - A[0]) * (C[1] - B[1]) - (B[1] - A[1]) * (C[0] - B[0]);
+  const between = Math.acos(clamp((ux * vx + uy * vy) / lu / lv, -1, 1)) * 180 / Math.PI;
+  const convex = turn * area > 0;
+  const inner = convex ? between : 360 - between;
+  const a1 = Math.atan2(uy, ux) * 180 / Math.PI, a2 = Math.atan2(vy, vx) * 180 / Math.PI;
+  // 從 a1 轉到 a2 經過室內的方向（+1 順時針 / -1 逆時針）
+  let d = ((a2 - a1) % 360 + 360) % 360;
+  const dir = Math.abs(d - inner) < .5 ? 1 : -1;
+  return { A, B, C, inner, a1, a2, dir, lv };
+}
+function anglesSVG(ui, clickable) {
+  const P = S.room.pts; if (!P || P.length < 3) return '';
+  const px = ui.k / ui.s, r = 22 * px;
+  let s = '';
+  P.forEach((_, i) => {
+    const c = cornerInfo(i); if (!c) return;
+    const B = c.B, rad = a => a * Math.PI / 180;
+    const p1 = [B[0] + Math.cos(rad(c.a1)) * r, B[1] + Math.sin(rad(c.a1)) * r];
+    const p2 = [B[0] + Math.cos(rad(c.a2)) * r, B[1] + Math.sin(rad(c.a2)) * r];
+    const mid = c.a1 + c.dir * c.inner / 2, lr = 44 * px;
+    const L = [B[0] + Math.cos(rad(mid)) * lr, B[1] + Math.sin(rad(mid)) * lr];
+    const txt = fmt(c.inner) + '°', fs = 11 * px, tw = textW(txt, fs) + fs * 1.1, th = fs * 1.6;
+    const right = Math.abs(c.inner - 90) < .05 || Math.abs(c.inner - 270) < .05;
+    const col = right ? '#8a8a82' : '#B5541C';
+    let g = `<path d="M${p1[0]} ${p1[1]} A${r} ${r} 0 ${c.inner > 180 ? 1 : 0} ${c.dir > 0 ? 1 : 0} ${p2[0]} ${p2[1]}" fill="none" stroke="${col}" stroke-width="1.2" ${NS}/>`;
+    g += `<rect x="${L[0] - tw / 2}" y="${L[1] - th / 2}" width="${tw}" height="${th}" rx="${th / 2}" fill="#fff" stroke="${col}" stroke-width="${clickable ? 1.2 : .8}" ${NS}/>`;
+    g += `<text x="${L[0]}" y="${L[1]}" font-size="${fs}" text-anchor="middle" dominant-baseline="central" fill="${col}" font-weight="800">${txt}</text>`;
+    s += clickable ? `<g data-ang="${i}" style="cursor:pointer"><title>點一下改這個角的角度</title>${g}</g>` : `<g pointer-events="none">${g}</g>`;
+  });
+  return s;
+}
+// 改角度：以這個牆角為軸，把「下一面牆」轉到指定角度（長度不變）
+function setCornerAngle(i, deg) {
+  const c = cornerInfo(i); if (!c || !(deg > 0 && deg < 360)) return;
+  const P = S.room.pts, n = P.length, a = (c.a1 + c.dir * deg) * Math.PI / 180;
+  P[(i + 1) % n] = [r1(c.B[0] + Math.cos(a) * c.lv), r1(c.B[1] + Math.sin(a) * c.lv)];
+}
+function askAngle(i) {
+  const c = cornerInfo(i); if (!c) return;
+  const m = modal(`<div class="mh">改第 ${i + 1} 個牆角的角度</div>
+    <div class="mb"><div class="fld"><label>室內這一側的角度</label><span class="unit" data-u="度"><input class="inp" type="number" min="1" max="359" step="0.5" id="agIn" value="${fmt(c.inner)}" style="font-size:1.1rem;padding:9px 40px 9px 10px"></span></div>
+    <div class="btns">${[90, 135, 120, 45, 270].map(v => `<button class="btn sm" data-v="${v}">${v}°</button>`).join('')}</div>
+    <p class="hint">常見：<b>90°</b> 直角、<b>135°</b> 斜切角、<b>270°</b> 往內凹的轉角。<br>改完會以這個角為軸，把<b>下一面牆</b>轉過去，長度不變。</p></div>
+    <div class="mf"><button class="btn" data-close>取消</button><button class="btn dark" id="agOk">確定</button></div>`);
+  const inp = m.querySelector('#agIn'); setTimeout(() => { inp.focus(); inp.select(); }, 30);
+  const ok = () => { const v = +inp.value; m.remove(); if (v > 0 && v < 360) commit(() => { setCornerAngle(i, v); setRoomFromPts(S.room.pts); reSnapOpens(); }, { room: 1 }); };
+  m.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { inp.value = b.dataset.v; ok(); });
+  m.querySelector('#agOk').onclick = ok;
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') ok(); if (e.key === 'Escape') m.remove(); });
+}
+
+// 改某面牆長度的小視窗
+function askWallLen(i) {
+  const P = S.room.pts, a = P[i], b = P[(i + 1) % P.length], cur = fmt(Math.hypot(b[0] - a[0], b[1] - a[1]));
+  const m = modal(`<div class="mh">改第 ${i + 1} 面牆的長度</div>
+    <div class="mb"><div class="fld"><label>量到的長度（室內淨尺寸）</label><span class="unit" data-u="公分"><input class="inp" type="number" min="1" id="wlIn" value="${cur}" style="font-size:1.1rem;padding:9px 46px 9px 10px"></span></div>
+    <p class="hint">改完之後，<b>下一面牆會整面推出去或拉進來</b>，其他牆的角度不變。</p></div>
+    <div class="mf"><button class="btn" data-close>取消</button><button class="btn dark" id="wlOk">確定</button></div>`);
+  const inp = m.querySelector('#wlIn'); setTimeout(() => { inp.focus(); inp.select(); }, 30);
+  const ok = () => { const v = +inp.value; m.remove(); if (v > 0) commit(() => { setWallLen(i, v); reSnapOpens(); }, { room: 1 }); };
+  m.querySelector('#wlOk').onclick = ok;
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') ok(); if (e.key === 'Escape') m.remove(); });
+}
+// 牆角拖拉時：跟相鄰牆角的 x 或 y 對齊（保持水平垂直）
+function snapCorner(i, p, free) {
+  const P = S.room.pts, n = P.length, tol = 10 / V.s;
+  let x = Math.round(p[0]), y = Math.round(p[1]);
+  if (!free) for (const j of [(i - 1 + n) % n, (i + 1) % n]) {
+    if (Math.abs(p[0] - P[j][0]) < tol) x = P[j][0];
+    if (Math.abs(p[1] - P[j][1]) < tol) y = P[j][1];
+  }
+  return [x, y];
+}
+
+let VIEWONLY = false;
+svg.addEventListener('pointerdown', e => {
+  if (e.button === 2) return;
+  svg.setPointerCapture(e.pointerId);
+  PTRS.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (PTRS.size === 2) { // 兩指縮放
+    const [a, b] = [...PTRS.values()];
+    drag = { kind: 'pinch', d: Math.hypot(a.x - b.x, a.y - b.y), s: V.s, ox: V.ox, oy: V.oy, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+    return;
+  }
+  const w = toWorld(e);
+  if (MODE === 'wall' && !VIEWONLY) { // 拉線畫牆：按下去開始拉，放開決定這面牆
+    if (!WP.length) WP = [wallEnd(w)];
+    WD = wallEnd(w, e.shiftKey);
+    drag = { kind: 'wall' }; render(); return;
+  }
+  if (MODE === 'select' && !VIEWONLY) {
+    const ag = e.target.closest('[data-ang]');
+    if (ag) { askAngle(+ag.dataset.ang); return; }
+    const wl = e.target.closest('[data-wall]');
+    if (wl) { // 點牆的長度數字 → 改長度（把畫面上的牆對回牆角清單的順序）
+      const ed = G.edges[+wl.dataset.wall], P = S.room.pts;
+      const idx = P.findIndex(p => Math.hypot(p[0] - ed.a[0], p[1] - ed.a[1]) < .6);
+      if (idx >= 0) askWallLen(idx);
+      return;
+    }
+    const vtx = e.target.closest('[data-v]'), vm = e.target.closest('[data-vm]');
+    if (vtx || vm) {
+      const pre = snap(); let i;
+      if (vm) { const P = S.room.pts; i = +vm.dataset.vm + 1; const a = P[i - 1], b = P[i % P.length]; P.splice(i, 0, [r1((a[0] + b[0]) / 2), r1((a[1] + b[1]) / 2)]); }
+      else i = +vtx.dataset.v;
+      drag = { kind: 'vert', i, pre, moved: false };
+      render(); return;
+    }
+  }
+  if (MODE === 'dim' && !VIEWONLY) {
+    const p = snapPoint(w);
+    if (!DIMA) { DIMA = p; DIMP = p; render(); }
+    else {
+      let q = p; // 接近水平或垂直就拉直
+      if (Math.abs(q[1] - DIMA[1]) < Math.abs(q[0] - DIMA[0]) * .09) q = [q[0], DIMA[1]];
+      else if (Math.abs(q[0] - DIMA[0]) < Math.abs(q[1] - DIMA[1]) * .09) q = [DIMA[0], q[1]];
+      const it = { id: uid(), t: 'dim', x1: DIMA[0], y1: DIMA[1], x2: q[0], y2: q[1] };
+      DIMA = null; DIMP = null;
+      if (Math.hypot(it.x2 - it.x1, it.y2 - it.y1) > 1) commit(() => S.items.push(it)); else render();
+    }
+    return;
+  }
+  const h = e.target.closest('[data-h]');
+  if (h && !VIEWONLY && SEL.length === 1) { drag = { kind: h.dataset.h, id: SEL[0], pre: snap(), moved: false, orig: JSON.parse(JSON.stringify(byId(SEL[0]))) }; return; }
+  const el = e.target.closest('[data-id]');
+  if (el && !VIEWONLY) {
+    const id = el.dataset.id;
+    if (e.shiftKey || e.metaKey || e.ctrlKey) { SEL = SEL.includes(id) ? SEL.filter(x => x !== id) : [...SEL, id]; }
+    else if (!SEL.includes(id)) SEL = [id];
+    drag = { kind: 'move', start: w, pre: snap(), moved: false, orig: SEL.map(i => JSON.parse(JSON.stringify(byId(i)))), box: unionBox(SEL) };
+    render(); renderProps(); return;
+  }
+  if (!e.shiftKey && SEL.length) { SEL = []; renderProps(); }
+  drag = { kind: 'pan', sx: e.clientX, sy: e.clientY, ox: V.ox, oy: V.oy };
+  svg.classList.add('pan');
+  render();
+});
+
+svg.addEventListener('pointermove', e => {
+  if (PTRS.has(e.pointerId)) PTRS.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const w = toWorld(e); CURSOR = w;
+  if (MODE === 'wall' && (!drag || drag.kind === 'wall')) { WD = wallEnd(w, e.shiftKey); render(); return; }
+  if (drag && drag.kind === 'vert') {
+    const P = S.room.pts, np = snapCorner(drag.i, w, e.altKey);
+    if (np[0] !== P[drag.i][0] || np[1] !== P[drag.i][1]) { P[drag.i] = np; drag.moved = true; render(); }
+    return;
+  }
+  if (MODE === 'dim' && DIMA && !drag) {
+    let q = snapPoint(w);
+    if (Math.abs(q[1] - DIMA[1]) < Math.abs(q[0] - DIMA[0]) * .09) q = [q[0], DIMA[1]];
+    else if (Math.abs(q[0] - DIMA[0]) < Math.abs(q[1] - DIMA[1]) * .09) q = [DIMA[0], q[1]];
+    DIMP = q; render(); return;
+  }
+  if (!drag) { renderStatus(); return; }
+  if (drag.kind === 'pinch') {
+    if (PTRS.size < 2) return;
+    const [a, b] = [...PTRS.values()], r = svg.getBoundingClientRect();
+    const ns = clamp(drag.s * Math.hypot(a.x - b.x, a.y - b.y) / drag.d, .05, 8);
+    const mx = drag.mx - r.left, my = drag.my - r.top, nmx = (a.x + b.x) / 2 - r.left, nmy = (a.y + b.y) / 2 - r.top;
+    V.s = ns; V.ox = nmx - (mx - drag.ox) * ns / drag.s; V.oy = nmy - (my - drag.oy) * ns / drag.s;
+    render(); return;
+  }
+  if (drag.kind === 'pan') { V.ox = drag.ox + e.clientX - drag.sx; V.oy = drag.oy + e.clientY - drag.sy; render(); return; }
+  drag.moved = true;
+  if (drag.kind === 'move') {
+    let dx = w[0] - drag.start[0], dy = w[1] - drag.start[1];
+    const onlyOpen = drag.orig.length === 1 && drag.orig[0].t === 'open';
+    if (!onlyOpen) [dx, dy] = snapDelta(drag.box, dx, dy, SEL, e.altKey);
+    for (const o of drag.orig) {
+      const it = byId(o.id);
+      if (it.t === 'dim') { it.x1 = r1(o.x1 + dx); it.y1 = r1(o.y1 + dy); it.x2 = r1(o.x2 + dx); it.y2 = r1(o.y2 + dy); }
+      else if (it.t === 'open') snapToWall(it, onlyOpen ? o.cx + (w[0] - drag.start[0]) : o.cx + dx, onlyOpen ? o.cy + (w[1] - drag.start[1]) : o.cy + dy);
+      else { it.cx = r1(o.cx + dx); it.cy = r1(o.cy + dy); }
+    }
+  } else if (drag.kind === 'rot') {
+    const it = byId(drag.id);
+    let a = Math.atan2(w[1] - it.cy, w[0] - it.cx) * 180 / Math.PI + 90;
+    a = e.shiftKey ? Math.round(a) : Math.round(a / 15) * 15;
+    it.rot = ((a % 360) + 360) % 360;
+  } else if (drag.kind === 'rw' || drag.kind === 'rd') {
+    const it = byId(drag.id), o = drag.orig;
+    const a = (o.rot || 0) * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a), vx = -uy, vy = ux;
+    const lx = (w[0] - o.cx) * ux + (w[1] - o.cy) * uy, ly = (w[0] - o.cx) * vx + (w[1] - o.cy) * vy;
+    if (drag.kind === 'rw') {
+      const nw = Math.max(5, Math.round(lx + o.w / 2)), sh = (nw - o.w) / 2;
+      it.w = nw; it.cx = r1(o.cx + ux * sh); it.cy = r1(o.cy + uy * sh);
+      if (it.round) it.d = nw;
+    } else {
+      const nd = Math.max(5, Math.round(ly + o.d / 2)), sh = (nd - o.d) / 2;
+      it.d = nd; it.cx = r1(o.cx + vx * sh); it.cy = r1(o.cy + vy * sh);
+    }
+  }
+  render();
+});
+
+function endPtr(e) {
+  PTRS.delete(e.pointerId);
+  svg.classList.remove('pan');
+  if (!drag) return;
+  if (drag.kind === 'pinch') { if (PTRS.size === 0) drag = null; return; }
+  if (drag.kind === 'wall') { // 放開：拉夠長就成一面牆；拉回起點就收尾
+    drag = null;
+    const a = WP[WP.length - 1], end = WD;
+    if (end && a && Math.hypot(end[0] - a[0], end[1] - a[1]) >= 10) {
+      if (WP.length >= 3 && end[0] === WP[0][0] && end[1] === WP[0][1]) { finishWall(); return; }
+      WP.push(end);
+    }
+    setMode('wall', true); return;
+  }
+  if (drag.kind === 'vert') {
+    if (drag.moved) { setRoomFromPts(S.room.pts); reSnapOpens(); }
+    else if (S.room.pts.length !== JSON.parse(drag.pre).room.pts.length) restore(drag.pre); // 點了 ＋ 沒拖：不加角
+  }
+  if (drag.moved && drag.pre) { UNDO.push(drag.pre); REDO = []; DIRTY = true; }
+  if (drag.kind === 'vert') renderRoom();
+  drag = null; GUIDES = [];
+  render(); renderProps();
+}
+svg.addEventListener('pointerup', endPtr);
+svg.addEventListener('pointercancel', endPtr);
+svg.addEventListener('pointerleave', () => { CURSOR = null; renderStatus(); });
+svg.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = svg.getBoundingClientRect();
+  zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0015)), e.clientX - r.left, e.clientY - r.top);
+}, { passive: false });
+svg.addEventListener('dblclick', e => { // 雙擊牆角：刪掉這個角；雙擊設備：跳到屬性改名稱
+  const v = e.target.closest('[data-v]');
+  if (v && !VIEWONLY) {
+    if (S.room.pts.length > 3) commit(() => { S.room.pts.splice(+v.dataset.v, 1); setRoomFromPts(S.room.pts); reSnapOpens(); }, { room: 1 });
+    else toast('至少要保留 3 個角');
+    return;
+  }
+  const el = e.target.closest('[data-id]'); if (!el || VIEWONLY) return;
+  SEL = [el.dataset.id]; renderProps();
+  if (window.matchMedia('(max-width:1099px)').matches) showTab('prop');
+  setTimeout(() => { const f = document.querySelector('[data-f="name"],[data-f="text"]'); if (f) { f.focus(); f.select?.(); } }, 30);
+});
+
+/* ================= 鍵盤 ================= */
+document.addEventListener('keydown', e => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select' || VIEWONLY) return;
+  if (document.querySelector('.mask')) return;
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
+  if (mod && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateSel(); return; }
+  if (mod && e.key.toLowerCase() === 'a') { e.preventDefault(); SEL = S.items.map(i => i.id); refresh(); return; }
+  if (MODE === 'wall') { // 畫牆時：Esc 取消、Backspace 退一步、Enter 完成
+    if (e.key === 'Escape') cancelWall();
+    else if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); WP.pop(); setMode('wall', true); }
+    else if (e.key === 'Enter') finishWall();
+    return;
+  }
+  if (e.key === 'Escape') { if (MODE === 'dim') setMode('select'); SEL = []; refresh(); return; }
+  if (e.key === 'm' || e.key === 'M') { setMode(MODE === 'dim' ? 'select' : 'dim'); return; }
+  if (!SEL.length) return;
+  if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSel(); return; }
+  if (e.key === 'r' || e.key === 'R') { rotateSel(e.shiftKey ? -90 : 90); return; }
+  const step = e.shiftKey ? 10 : 1;
+  const mv = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+  if (mv) { e.preventDefault(); commit(() => SEL.forEach(id => moveBy(byId(id), mv[0], mv[1]))); }
+});
+function moveBy(it, dx, dy) {
+  if (it.t === 'dim') { it.x1 += dx; it.y1 += dy; it.x2 += dx; it.y2 += dy; }
+  else if (it.t === 'open') snapToWall(it, it.cx + dx, it.cy + dy);
+  else { it.cx = r1(it.cx + dx); it.cy = r1(it.cy + dy); }
+}
+function deleteSel() { const ids = SEL.slice(); SEL = []; commit(() => { S.items = S.items.filter(i => !ids.includes(i.id)); }); }
+function rotateSel(deg) { commit(() => SEL.forEach(id => { const it = byId(id); if (it && (isEquip(it) || it.t === 'text')) it.rot = (((it.rot || 0) + deg) % 360 + 360) % 360; })); }
+function duplicateSel() {
+  if (!SEL.length) return;
+  const news = SEL.map(id => { const c = JSON.parse(JSON.stringify(byId(id))); c.id = uid(); moveBy(c, 20, 20); return c; });
+  commit(() => S.items.push(...news)); SEL = news.map(n => n.id); refresh();
+}
+
+/* ================= 左側：1 空間 ================= */
+function keepFocus(box, fn) {
+  const a = document.activeElement, k = a && box.contains(a) ? [a.dataset.f, a.dataset.i] : null;
+  fn();
+  if (k) { const el = box.querySelector(`[data-f="${k[0]}"]${k[1] != null ? `[data-i="${k[1]}"]` : ''}`); if (el) el.focus(); }
+}
+function renderRoom() {
+  const box = $('#pane-room');
+  keepFocus(box, () => {
+    G = roomGeo();
+    const P = S.room.pts || [];
+    const segRows = P.map((a, i) => { const b = P[(i + 1) % P.length]; return `
+      <div class="seg"><span class="no">${i + 1}</span><span class="hint">第 ${i + 1} 面牆</span>
+        <span class="unit" data-u="cm"><input class="inp" type="number" min="1" step="1" data-f="wlen" data-i="${i}" value="${fmt(Math.hypot(b[0] - a[0], b[1] - a[1]))}"></span>
+        <span></span></div>`; }).join('');
+    const close = G.ok ? `<div class="okline">✓ 牆面已圍起來（${G.pts.length} 面牆）</div>` : `<div class="okline warn">⚠️ 牆面至少要 3 面才圍得起來</div>`;
+    const m2 = G.area / 10000, ping = m2 / 3.3058;
+    box.innerHTML = `
+    <div class="sec"><h3>🏪 店家資訊 <small>會印在圖面標題</small></h3>
+      <div class="fld"><label>店名／案名</label><input class="inp" data-f="m.name" value="${esc(S.meta.name)}"></div>
+      <div class="fld"><label>地址或備註</label><input class="inp" data-f="m.addr" value="${esc(S.meta.addr)}" placeholder="例：台中市豐原區 XX 路 1 樓"></div>
+      <div class="fld"><label>繪製人</label><input class="inp" data-f="m.author" value="${esc(S.meta.author)}"></div>
+    </div>
+    <div class="sec"><h3>✏️ 畫出店面格局</h3>
+      <button class="drawbtn" data-act="draw">✏️ 用拉線畫牆</button>
+      <p class="hint" style="margin-top:7px"><b>按住滑鼠拉出一面牆，放開就畫好</b>，再從尾端接著拉下一面，拉回起點就圍起來了。<br>畫完可以<b>拖拉牆角</b>調整形狀、<b>點牆上的數字</b>改成量到的長度、拖牆中間的 <b>＋</b> 多加一個轉角。</p>
+    </div>
+    <div class="sec"><h3>📐 方正的店：直接輸入長寬</h3>
+      <div class="row2">
+        <div class="fld"><label>總寬（左右）</label><span class="unit" data-u="cm"><input class="inp" type="number" id="qW" value="${Math.round(boundsW())}"></span></div>
+        <div class="fld"><label>總深（前後）</label><span class="unit" data-u="cm"><input class="inp" type="number" id="qD" value="${Math.round(boundsD())}"></span></div>
+      </div>
+      <details style="margin-bottom:8px"><summary class="hint" style="cursor:pointer">要做 L 形（缺一角）？展開設定</summary>
+        <div class="row3" style="margin-top:6px">
+          <div class="fld"><label>缺角寬</label><span class="unit" data-u="cm"><input class="inp" type="number" id="qA" value="200"></span></div>
+          <div class="fld"><label>缺角深</label><span class="unit" data-u="cm"><input class="inp" type="number" id="qB" value="150"></span></div>
+          <div class="fld"><label>缺哪角</label><select class="inp" id="qC"><option value="TR">右上</option><option value="BR">右下</option><option value="BL">左下</option><option value="TL">左上</option></select></div>
+        </div>
+      </details>
+      <div class="btns"><button class="btn dark" data-act="rect">套用矩形</button><button class="btn" data-act="lshape">套用 L 形</button></div>
+      <p class="hint" style="margin-top:6px">套用後會<b>重新產生牆面</b>，已擺的設備不會被刪掉。</p>
+    </div>
+    <div class="sec"><h3>🧱 每面牆的長度 <small>改數字＝把下一面牆推出去或拉進來</small></h3>
+      <p class="hint" style="margin-bottom:7px">輸入<b>室內淨尺寸</b>（牆面到牆面）。在畫面上點牆的長度數字也能改。</p>
+      <div class="segs">${segRows}</div>
+      <div style="margin-top:7px">${close}</div>
+      <div class="row2" style="margin-top:8px">
+        <div class="fld"><label>牆厚（只影響畫面）</label><span class="unit" data-u="cm"><input class="inp" type="number" min="0" data-f="t" value="${S.room.t}"></span></div>
+        <div class="fld"><label>&nbsp;</label><div class="area">面積 <b>${fmt(m2)}</b> ㎡ ≈ <b>${fmt(ping)}</b> 坪</div></div>
+      </div>
+    </div>
+    <div class="sec"><h3>🚪 門窗 <small>點了會貼到最近的牆，拖拉沿著牆移動</small></h3>
+      <div class="chips">${OPENS.map((o, i) => `<button class="chip" data-act="open" data-i="${i}"><span class="dot" style="background:${OPEN_COLOR}"></span>${o[1]}</button>`).join('')}</div>
+    </div>
+    <div class="sec"><h3>🏛 固定結構</h3>
+      <div class="chips">${LIB.map((l, i) => l[0] === 'struct' ? `<button class="chip" data-act="lib" data-i="${i}"><span class="dot" style="background:${CATS.struct.color}"></span>${l[1]}</button>` : '').join('')}</div>
+      <p class="hint" style="margin-top:6px">柱子、樓梯、廁所這類搬不走的東西，先擺好再放設備。</p>
+    </div>`;
+  });
+}
+function boundsW() { const g = roomGeo(); if (!g.ok) return 600; const xs = g.pts.map(p => p[0]); return Math.max(...xs) - Math.min(...xs); }
+function boundsD() { const g = roomGeo(); if (!g.ok) return 400; const ys = g.pts.map(p => p[1]); return Math.max(...ys) - Math.min(...ys); }
+// 存牆角：去掉重複點與同一直線上多餘的點
+function setRoomFromPts(pts) {
+  let P = pts.map(p => [r1(p[0]), r1(p[1])]);
+  if (P.length > 1 && Math.hypot(P[0][0] - P[P.length - 1][0], P[0][1] - P[P.length - 1][1]) < .5) P.pop();
+  for (let k = 0; k < 3 && P.length > 3; k++) {
+    P = P.filter((b, i) => {
+      const a = P[(i - 1 + P.length) % P.length], c = P[(i + 1) % P.length];
+      if (Math.hypot(b[0] - a[0], b[1] - a[1]) < .5) return false;
+      const cr = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+      return Math.abs(cr) > 1e-3 * Math.hypot(b[0] - a[0], b[1] - a[1]) * Math.hypot(c[0] - b[0], c[1] - b[1]);
+    });
+  }
+  S.room = { t: S.room.t ?? 15, pts: P };
+}
+// 改第 i 面牆的長度：把「下一面牆」整面平移過去（像把那面牆推出去／拉進來），矩形改完還是矩形
+function setWallLen(i, L) {
+  const P = S.room.pts, n = P.length;
+  if (n < 3 || L <= 0) return false;
+  const a = P[i], b = P[(i + 1) % n], cur = Math.hypot(b[0] - a[0], b[1] - a[1]); if (!cur) return false;
+  const dx = (b[0] - a[0]) / cur * (L - cur), dy = (b[1] - a[1]) / cur * (L - cur);
+  for (const j of [(i + 1) % n, (i + 2) % n]) if (j !== i) P[j] = [r1(P[j][0] + dx), r1(P[j][1] + dy)];
+  return true;
+}
+function rectNotch(W, D, a, b, c) {
+  const C = { TL: [[0, b], [a, b], [a, 0]], TR: [[W - a, 0], [W - a, b], [W, b]], BR: [[W, D - b], [W - a, D - b], [W - a, D]], BL: [[a, D], [a, D - b], [0, D - b]] };
+  const base = { TL: [[0, 0]], TR: [[W, 0]], BR: [[W, D]], BL: [[0, D]] };
+  const pts = [];
+  for (const k of ['TL', 'TR', 'BR', 'BL']) pts.push(...(k === c ? C[k] : base[k]));
+  return pts;
+}
+function reSnapOpens() { G = roomGeo(); for (const it of S.items) if (it.t === 'open') snapToWall(it, it.cx, it.cy); }
+
+$('#pane-room').addEventListener('change', e => {
+  const f = e.target.dataset.f; if (!f) return;
+  const i = +e.target.dataset.i, v = e.target.value;
+  commit(() => {
+    if (f.startsWith('m.')) S.meta[f.slice(2)] = v;
+    else if (f === 'wlen') setWallLen(i, Math.max(1, +v || 0));
+    else if (f === 't') S.room.t = Math.max(0, +v || 0);
+    if (!f.startsWith('m.')) reSnapOpens();
+  }, { room: !f.startsWith('m.') });
+});
+$('#pane-room').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, i = +b.dataset.i;
+  if (a === 'draw') startWall();
+  if (a === 'rect' || a === 'lshape') {
+    const W = Math.max(50, +$('#qW').value || 0), D = Math.max(50, +$('#qD').value || 0);
+    const A = clamp(+$('#qA').value || 0, 10, W - 10), B = clamp(+$('#qB').value || 0, 10, D - 10);
+    commit(() => {
+      if (a === 'rect') setRoomFromPts([[0, 0], [W, 0], [W, D], [0, D]]);
+      else setRoomFromPts(rectNotch(W, D, A, B, $('#qC').value));
+      reSnapOpens();
+    }, { room: 1 });
+    fitView();
+  }
+  if (a === 'open') addOpen(i);
+  if (a === 'lib') addLib(i);
+});
+
+/* ================= 左側：2 設備庫 ================= */
+let LIBQ = '';
+function renderLib() {
+  const box = $('#pane-lib');
+  const q = LIBQ.trim();
+  const cats = Object.keys(CATS).filter(k => k !== 'custom' && k !== 'struct');
+  const html = cats.map(k => {
+    const list = LIB.map((l, i) => [l, i]).filter(([l]) => l[0] === k && (!q || l[1].includes(q)));
+    if (!list.length) return '';
+    return `<details class="libcat" ${q || k === 'cold' || k === 'prep' || k === 'hot' ? 'open' : ''}>
+      <summary><span class="dot" style="background:${CATS[k].color}"></span>${CATS[k].name}<span class="c">${list.length} 種</span></summary>
+      <div class="libitems">${list.map(([l, i]) => `<button class="libitem" data-act="lib" data-i="${i}"><span class="plus">＋</span>${esc(l[1])}<span class="sz">${l[5]?.round ? 'Ø' + l[2] : l[2] + '×' + l[3]}</span></button>`).join('')}</div></details>`;
+  }).join('');
+  const mine = S.custom.filter(c => !q || c.name.includes(q));
+  box.innerHTML = `
+    <div class="sec"><input class="inp" id="libQ" placeholder="🔍 搜尋設備，例如：冰箱、水槽" value="${esc(LIBQ)}"></div>
+    <div class="sec"><p class="hint">點一下就會放到畫面中間，再拖到想要的位置。尺寸是<b>常見規格</b>，請改成你實際量到的。</p></div>
+    <div class="sec" style="display:flex;flex-direction:column;gap:8px">${html || '<div class="empty">找不到，請用下面「自訂設備」自己建一個</div>'}</div>
+    <div class="sec"><h3>🛠 自訂設備 <small>清單裡沒有的自己建</small></h3>
+      <div class="fld"><label>設備名稱</label><input class="inp" id="cName" placeholder="例：蔥油餅煎台"></div>
+      <div class="row2">
+        <div class="fld"><label>寬（左右）</label><span class="unit" data-u="cm"><input class="inp" type="number" id="cW" value="100"></span></div>
+        <div class="fld"><label>深（前後）</label><span class="unit" data-u="cm"><input class="inp" type="number" id="cD" value="60"></span></div>
+      </div>
+      <div class="row2">
+        <div class="fld"><label>分類（決定顏色）</label><select class="inp" id="cCat">${Object.keys(CATS).map(k => `<option value="${k}" ${k === 'custom' ? 'selected' : ''}>${CATS[k].name}</option>`).join('')}</select></div>
+        <div class="fld"><label>形狀</label><select class="inp" id="cShape"><option value="rect">方形</option><option value="round">圓形</option></select></div>
+      </div>
+      <button class="btn green" data-act="custom" style="width:100%">＋ 建立並放進平面圖</button>
+      ${mine.length ? `<div class="libcat" style="margin-top:10px"><div class="libitems">${mine.map((c, i) => `<button class="libitem" data-act="mine" data-i="${S.custom.indexOf(c)}" style="border-top:${i ? '' : 'none'}"><span class="plus">＋</span>${esc(c.name)}<span class="sz">${c.round ? 'Ø' + c.w : c.w + '×' + c.d}</span></button>`).join('')}</div></div>` : ''}
+    </div>`;
+  const qi = $('#libQ');
+  qi.oninput = () => { LIBQ = qi.value; const pos = qi.selectionStart; renderLib(); const n = $('#libQ'); n.focus(); n.setSelectionRange(pos, pos); };
+}
+$('#pane-lib').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, i = +b.dataset.i;
+  if (a === 'lib') addLib(i);
+  if (a === 'mine') addCustom(S.custom[i]);
+  if (a === 'custom') {
+    const name = $('#cName').value.trim(); if (!name) { toast('請先輸入設備名稱'); $('#cName').focus(); return; }
+    const round = $('#cShape').value === 'round';
+    const w = Math.max(5, +$('#cW').value || 0), d = round ? w : Math.max(5, +$('#cD').value || 0);
+    const c = { name, w, d, cat: $('#cCat').value, round: round ? 1 : 0 };
+    S.custom.push(c); renderLib(); addCustom(c);
+  }
+});
+
+/* ================= 左側：3 標註 ================= */
+function renderMark() {
+  $('#pane-mark').innerHTML = `
+    <div class="sec"><h3>🔌 水電瓦斯孔位 <small>跟工班溝通最常漏的</small></h3>
+      <div class="chips">${MARKS.map((m, i) => `<button class="chip" data-act="mark" data-i="${i}"><span class="dot" style="background:${m[3]};border-radius:50%"></span>${m[1]}</button>`).join('')}</div>
+      <div class="chips" style="margin-top:6px"><button class="chip" data-act="lib" data-i="${LIB.findIndex(l => l[1] === '地板排水溝')}"><span class="dot" style="background:${CATS.struct.color}"></span>地板排水溝</button></div>
+      <p class="hint" style="margin-top:6px">在孔位的「備註」寫高度或規格（例如：離地 110 公分、220V 30A），會一起列在設備清單。</p>
+    </div>
+    <div class="sec"><h3>🔤 文字</h3>
+      <button class="btn" data-act="text">＋ 加一段文字</button>
+      <p class="hint" style="margin-top:6px">標區域用，例如「內場」「外場用餐區」「倉庫」。</p>
+    </div>
+    <div class="sec"><h3>📏 自己量距離</h3>
+      <button class="btn dark" data-act="dim">開始量尺寸</button>
+      <p class="hint" style="margin-top:6px">點兩個點就會畫出尺寸線（會自動吸到牆角、設備角）。<br>快捷鍵 <b>M</b>，按 <b>Esc</b> 結束。</p>
+    </div>
+    <div class="sec"><h3>🚶 走道寬度檢查</h3>
+      <div class="fld"><label>走道最少要幾公分</label><span class="unit" data-u="cm"><input class="inp" type="number" min="30" data-f="aisleMin" value="${S.set.aisleMin}"></span></div>
+      <p class="hint">參考：<b>單人作業 75～90</b>、<b>兩人錯身 90～120</b>、推車通道 120 以上。設備之間不到這個寬度會用紅色虛線標出來。</p>
+    </div>
+    <div class="sec"><h3>👁 顯示</h3>
+      <label class="check"><input type="checkbox" data-f="labels" ${S.set.labels ? 'checked' : ''}> 顯示設備名稱</label>
+      <label class="check" style="margin-top:6px"><input type="checkbox" data-f="sizes" ${S.set.sizes ? 'checked' : ''}> 名稱下面顯示尺寸</label>
+    </div>`;
+}
+$('#pane-mark').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, i = +b.dataset.i;
+  if (a === 'mark') addMark(i);
+  if (a === 'lib') addLib(i);
+  if (a === 'text') addText();
+  if (a === 'dim') setMode('dim');
+});
+$('#pane-mark').addEventListener('change', e => {
+  const f = e.target.dataset.f; if (!f) return;
+  if (f === 'aisleMin') S.set.aisleMin = Math.max(30, +e.target.value || 90);
+  else S.set[f] = e.target.checked;
+  render();
+});
+
+/* ================= 右側：屬性 ================= */
+function renderProps() {
+  const box = $('#props');
+  keepFocus(box, () => {
+    if (!SEL.length) { box.innerHTML = `<div class="empty">點畫面上的設備就能改名稱、尺寸、角度。<br>按住 Shift 可以一次選多個。</div>`; return; }
+    if (SEL.length > 1) {
+      box.innerHTML = `<div class="empty" style="margin-bottom:8px">已選 <b>${SEL.length}</b> 個，可以一起拖拉移動。</div>
+        <div class="fld"><label>對齊（以最外側為準）</label><div class="btns">
+          <button class="btn sm" data-act="al" data-k="l">⇤ 靠左</button><button class="btn sm" data-act="al" data-k="r">靠右 ⇥</button>
+          <button class="btn sm" data-act="al" data-k="t">⤒ 靠上</button><button class="btn sm" data-act="al" data-k="b">靠下 ⤓</button></div></div>
+        <div class="btns"><button class="btn" data-act="rot" data-k="90">⟳ 轉 90°</button><button class="btn" data-act="dup">⧉ 複製</button><button class="btn red" data-act="del">🗑 刪除</button></div>`;
+      return;
+    }
+    const it = byId(SEL[0]); if (!it) { box.innerHTML = ''; return; }
+    const B = aabb(it);
+    const pos = `<div class="row2"><div class="fld"><label>左上角 X</label><span class="unit" data-u="cm"><input class="inp" type="number" data-f="px" value="${fmt(B.l)}"></span></div>
+      <div class="fld"><label>左上角 Y</label><span class="unit" data-u="cm"><input class="inp" type="number" data-f="py" value="${fmt(B.t)}"></span></div></div>`;
+    const acts = `<div class="btns"><button class="btn" data-act="dup">⧉ 複製</button><button class="btn red" data-act="del">🗑 刪除</button></div>`;
+    if (it.t === 'equip') {
+      box.innerHTML = `
+        <div class="fld"><label>名稱</label><input class="inp" data-f="name" value="${esc(it.name)}"></div>
+        <div class="row2">
+          <div class="fld"><label>${it.round ? '直徑' : '寬（左右）'}</label><span class="unit" data-u="cm"><input class="inp" type="number" min="5" data-f="w" value="${it.w}"></span></div>
+          ${it.round ? '' : `<div class="fld"><label>深（前後）</label><span class="unit" data-u="cm"><input class="inp" type="number" min="5" data-f="d" value="${it.d}"></span></div>`}
+        </div>
+        <div class="fld"><label>角度</label><div class="btns" style="align-items:center">
+          <button class="btn sm" data-act="rot" data-k="-90">⟲ 90°</button><button class="btn sm" data-act="rot" data-k="90">⟳ 90°</button>
+          <span class="unit" data-u="°" style="width:80px"><input class="inp" type="number" data-f="rot" value="${it.rot || 0}"></span></div></div>
+        ${pos}
+        <div class="row2">
+          <div class="fld"><label>分類</label><select class="inp" data-f="cat">${Object.keys(CATS).map(k => `<option value="${k}" ${k === it.cat ? 'selected' : ''}>${CATS[k].name}</option>`).join('')}</select></div>
+          <div class="fld"><label>顏色</label><input class="inp" type="color" data-f="color" value="${colorOf(it)}" style="height:32px;padding:2px"></div>
+        </div>
+        <div class="fld"><label>備註（高度、電壓、品牌型號…）</label><input class="inp" data-f="note" value="${esc(it.note)}" placeholder="例：高 85、220V"></div>
+        <p class="hint" style="margin-bottom:8px">拖<b>綠色圓點</b>旋轉、拖<b>白色方塊</b>改大小。鍵盤方向鍵微調 1 公分（加 Shift 是 10 公分）。</p>
+        ${acts}`;
+    } else if (it.t === 'open') {
+      box.innerHTML = `
+        <div class="fld"><label>類型</label><select class="inp" data-f="ot">${OPENS.map(o => `<option value="${o[0]}" ${o[0] === it.ot ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></div>
+        <div class="fld"><label>開口寬度</label><span class="unit" data-u="cm"><input class="inp" type="number" min="20" data-f="w" value="${it.w}"></span></div>
+        ${it.ot === 'door' || it.ot === 'door2' ? `<div class="btns" style="margin-bottom:8px">${it.ot === 'door' ? '<button class="btn sm" data-act="flip">↔ 換邊開</button>' : ''}<button class="btn sm" data-act="out">${it.out ? '改成往內開' : '改成往外開'}</button></div>` : ''}
+        <p class="hint" style="margin-bottom:8px">拖拉會沿著牆移動，拖到別面牆會自動轉向。</p>
+        ${acts}`;
+    } else if (it.t === 'mark') {
+      box.innerHTML = `
+        <div class="fld"><label>孔位</label><select class="inp" data-f="mk">${MARKS.map(m => `<option value="${m[0]}" ${m[0] === it.mk ? 'selected' : ''}>${m[1]}</option>`).join('')}</select></div>
+        <div class="fld"><label>備註（高度、規格）</label><input class="inp" data-f="note" value="${esc(it.note)}" placeholder="例：離地 110、220V 30A"></div>
+        ${pos}${acts}`;
+    } else if (it.t === 'text') {
+      box.innerHTML = `
+        <div class="fld"><label>文字</label><input class="inp" data-f="text" value="${esc(it.text)}"></div>
+        <div class="row2"><div class="fld"><label>字的大小</label><span class="unit" data-u="cm"><input class="inp" type="number" min="5" data-f="fs" value="${it.fs}"></span></div>
+        <div class="fld"><label>角度</label><span class="unit" data-u="°"><input class="inp" type="number" data-f="rot" value="${it.rot || 0}"></span></div></div>
+        ${acts}`;
+    } else if (it.t === 'dim') {
+      box.innerHTML = `<div class="empty" style="margin-bottom:8px">尺寸線：<b>${fmt(Math.hypot(it.x2 - it.x1, it.y2 - it.y1))}</b> 公分</div>${acts}`;
+    }
+  });
+}
+function propsChange(e) {
+  const f = e.target.dataset.f; if (!f || SEL.length !== 1) return;
+  const it = byId(SEL[0]), v = e.target.value;
+  commit(() => {
+    if (f === 'name' || f === 'note' || f === 'cat' || f === 'ot' || f === 'mk') { it[f] = v; if (f === 'cat') delete it.color; if (f === 'ot') it.name = OPENS.find(o => o[0] === v)[1]; if (f === 'mk') it.name = MARKS.find(o => o[0] === v)[1]; }
+    else if (f === 'color') it.color = v;
+    else if (f === 'w') { it.w = Math.max(5, +v || it.w); if (it.round) it.d = it.w; if (it.t === 'open') snapToWall(it, it.cx, it.cy); }
+    else if (f === 'd') it.d = Math.max(5, +v || it.d);
+    else if (f === 'rot') it.rot = (((+v || 0) % 360) + 360) % 360;
+    else if (f === 'px' || f === 'py') { const B = aabb(it); if (f === 'px') it.cx = r1(it.cx + (+v - B.l)); else it.cy = r1(it.cy + (+v - B.t)); }
+    else if (f === 'text') { it.text = v || '文字'; sizeText(it); }
+    else if (f === 'fs') { it.fs = Math.max(5, +v || 24); sizeText(it); }
+  });
+}
+function propsClick(e) {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, k = b.dataset.k;
+  if (a === 'del') deleteSel();
+  if (a === 'dup') duplicateSel();
+  if (a === 'rot') rotateSel(+k);
+  if (a === 'flip') commit(() => { const it = byId(SEL[0]); it.flip = it.flip ? 0 : 1; });
+  if (a === 'out') commit(() => { const it = byId(SEL[0]); it.out = it.out ? 0 : 1; });
+  if (a === 'al') {
+    const box = unionBox(SEL);
+    commit(() => SEL.forEach(id => { const it = byId(id); if (it.t === 'dim') return; const B = aabb(it);
+      const d = k === 'l' ? [box.l - B.l, 0] : k === 'r' ? [box.r - B.r, 0] : k === 't' ? [0, box.t - B.t] : [0, box.b - B.b];
+      moveBy(it, d[0], d[1]); }));
+  }
+}
+$('#rpane').addEventListener('change', propsChange);
+$('#rpane').addEventListener('click', propsClick);
+
+/* ================= 右側：檢查結果、設備清單 ================= */
+function renderWarns() {
+  const box = $('#warns');
+  if (!G.ok) { box.innerHTML = '<div class="warn amber">牆面還沒圍起來</div>'; return; }
+  if (!S.items.some(isEquip)) { box.innerHTML = '<div class="empty">擺了設備之後，這裡會自動檢查重疊、超出牆外、走道太窄。</div>'; return; }
+  if (!WARNS.length) { box.innerHTML = `<div class="warn ok">✓ 沒發現問題${S.set.aisle ? `（走道都 ≥ ${S.set.aisleMin} 公分）` : ''}</div>`; return; }
+  box.innerHTML = '<div class="warns">' + WARNS.map((w, i) => `<button class="warn ${w.type === 'aisle' ? 'amber' : ''}" data-w="${i}">${w.type === 'aisle' ? '🚶' : w.type === 'out' ? '🧱' : '⛔'} ${esc(w.msg)}</button>`).join('') + '</div>';
+}
+$('#warns').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (!b) return; SEL = WARNS[+b.dataset.w].ids.slice(); refresh(); });
+
+function equipList() {
+  const groups = new Map();
+  const secName = it => it.t === 'open' ? '門窗' : it.t === 'mark' ? '水電孔位' : (CATS[it.cat]?.name || '其他');
+  const order = [...Object.values(CATS).map(c => c.name), '門窗', '水電孔位'];
+  for (const it of S.items) {
+    if (it.t === 'dim' || it.t === 'text') continue;
+    const size = it.t === 'mark' ? '—' : it.t === 'open' ? `寬 ${fmt(it.w)}` : it.round ? `Ø${fmt(it.w)}` : `${fmt(it.w)}×${fmt(it.d)}`;
+    const key = secName(it) + '|' + it.name + '|' + size;
+    if (!groups.has(key)) groups.set(key, { sec: secName(it), name: it.name, size, n: 0, notes: new Set() });
+    const g = groups.get(key); g.n++; if (it.note) g.notes.add(it.note);
+  }
+  return [...groups.values()].sort((a, b) => order.indexOf(a.sec) - order.indexOf(b.sec) || a.name.localeCompare(b.name, 'zh-Hant'));
+}
+function renderList() {
+  const L = equipList();
+  if (!L.length) { $('#list').innerHTML = '<div class="empty">還沒有設備</div>'; return; }
+  let sec = '', h = '<table class="list"><tr><th>名稱</th><th>尺寸</th><th class="n">數量</th></tr>';
+  for (const g of L) {
+    if (g.sec !== sec) { sec = g.sec; h += `<tr class="cat"><td colspan="3">${esc(sec)}</td></tr>`; }
+    h += `<tr><td>${esc(g.name)}${g.notes.size ? `<br><span class="hint">${esc([...g.notes].join('／'))}</span>` : ''}</td><td class="n">${g.size}</td><td class="n">${g.n}</td></tr>`;
+  }
+  $('#list').innerHTML = h + '</table>';
+}
+
+/* ================= 匯出 ================= */
+function buildExport(opt) {
+  G = roomGeo(); runChecks();
+  const B = contentBounds();
+  const bw = B.r - B.l, bh = B.b - B.t;
+  const k = 2.6;                                // 線與字放大倍數（輸出圖比較大）
+  const s = clamp(Math.min(2300 / bw, 1500 / bh), .3, 5);
+  const pad = 70 * k + 40;                      // 留給尺寸線的邊
+  const dW = bw * s + pad * 2, dH = bh * s + pad * 2;
+  const W = Math.max(Math.round(dW) + 80, 1800);
+  const head = 130, top = head + 20;
+  const ox = (W - dW) / 2 + pad - B.l * s, oy = top + pad - B.t * s;
+  // 設備清單排成幾欄
+  const L = opt.list ? equipList() : [];
+  const rows = []; let sec = '';
+  for (const g of L) { if (g.sec !== sec) { sec = g.sec; rows.push({ head: sec }); } rows.push(g); }
+  const colW = 660, cols = Math.max(1, Math.floor((W - 80) / colW)), per = Math.ceil(rows.length / cols) || 0;
+  const rowH = 44, listTop = top + dH + 30, listH = rows.length ? 80 + per * rowH : 0;
+  const footTop = listTop + listH + 20, H = Math.round(footTop + 90);
+  const m2 = G.area / 10000;
+  let s2 = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>${defsSVG()}</defs>
+  <style>text{font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}</style>
+  <rect width="${W}" height="${H}" fill="#fff"/>
+  <rect width="${W}" height="${head}" fill="#1A1A16"/>
+  <rect x="0" y="${head - 6}" width="${W}" height="6" fill="#C3F000"/>
+  <text x="40" y="62" font-size="44" font-weight="800" fill="#C3F000">${esc(S.meta.name || '店面平面圖')}</text>
+  <text x="40" y="100" font-size="22" fill="#d8d8d0">店面平面示意圖　｜　單位：公分（cm）　｜　室內面積約 ${fmt(m2)} ㎡（${fmt(m2 / 3.3058)} 坪）</text>
+  <text x="${W - 40}" y="58" font-size="22" fill="#d8d8d0" text-anchor="end">${esc(S.meta.addr || '')}</text>
+  <text x="${W - 40}" y="96" font-size="22" fill="#d8d8d0" text-anchor="end">${S.meta.author ? '繪製：' + esc(S.meta.author) + '　' : ''}日期：${todayTW()}</text>
+  <g transform="translate(${ox} ${oy}) scale(${s})">${sceneSVG({ s, k, screen: false }, { warn: opt.warn, angles: opt.angles })}</g>`;
+  if (rows.length) {
+    s2 += `<line x1="40" y1="${listTop}" x2="${W - 40}" y2="${listTop}" stroke="#e3e3da" stroke-width="2"/>
+    <text x="40" y="${listTop + 50}" font-size="32" font-weight="800" fill="#1A1A16">設備清單</text>`;
+    rows.forEach((r, i) => {
+      const c = Math.floor(i / per), j = i % per, x = 40 + c * colW, y = listTop + 80 + j * rowH + 30;
+      if (r.head) s2 += `<rect x="${x}" y="${y - 30}" width="${colW - 30}" height="${rowH - 4}" rx="6" fill="#f3f3ee"/><text x="${x + 12}" y="${y}" font-size="24" font-weight="800" fill="#5a5a52">${esc(r.head)}</text>`;
+      else s2 += `<text x="${x + 12}" y="${y}" font-size="24" fill="#1A1A16">${esc(r.name)}${r.notes.size ? `<tspan fill="#9a9a92" font-size="19">　${esc([...r.notes].join('／'))}</tspan>` : ''}</text>
+        <text x="${x + colW - 140}" y="${y}" font-size="24" fill="#5a5a52" text-anchor="end">${r.size}</text>
+        <text x="${x + colW - 44}" y="${y}" font-size="24" font-weight="800" fill="#1A1A16" text-anchor="end">× ${r.n}</text>`;
+    });
+  }
+  // 比例尺與註記
+  const bar = 100 * s;
+  s2 += `<g transform="translate(40 ${footTop + 20})">
+    <rect width="${bar}" height="10" fill="#1A1A16"/><rect x="${bar}" width="${bar}" height="10" fill="#fff" stroke="#1A1A16" stroke-width="2"/>
+    <text y="42" font-size="22" fill="#5a5a52">0</text><text x="${bar}" y="42" font-size="22" fill="#5a5a52" text-anchor="middle">1 m</text><text x="${bar * 2}" y="42" font-size="22" fill="#5a5a52" text-anchor="middle">2 m</text></g>
+  <text x="${W - 40}" y="${footTop + 34}" font-size="22" fill="#7a7a72" text-anchor="end">尺寸為室內淨尺寸；本圖為示意圖，施工前請以現場丈量為準。</text>
+  <text x="${W - 40}" y="${footTop + 66}" font-size="18" fill="#b8b8ae" text-anchor="end">店面平面圖小幫手</text>
+  </svg>`;
+  return { svg: s2, W, H };
+}
+function fileName(ext) { return `${(S.meta.name || '店面平面圖').replace(/[\\/:*?"<>|]/g, '')}_平面圖_${todayTW()}.${ext}`; }
+function downloadBlob(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function exportPNG(opt) {
+  const { svg: str, W, H } = buildExport(opt);
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.drawImage(img, 0, 0);
+    c.toBlob(b => { downloadBlob(b, fileName('png')); toast('✓ 已下載 <b>PNG 圖檔</b>'); }, 'image/png');
+  };
+  img.onerror = () => toast('產生圖檔失敗，請改用「列印／存成 PDF」');
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(str);
+}
+function exportPDF(opt) {
+  const { svg: str } = buildExport(opt);
+  $('#pageStyle').textContent = `@page { size: ${opt.paper} landscape; margin: 8mm; }`;
+  $('#printArea').innerHTML = str;
+  setTimeout(() => { window.print(); }, 80);
+}
+function exportCSV() {
+  const L = equipList();
+  const q = v => `"${String(v).replace(/"/g, '""')}"`;
+  const lines = [['分類', '名稱', '尺寸（公分）', '數量', '備註'].map(q).join(',')];
+  for (const g of L) lines.push([g.sec, g.name, g.size, g.n, [...g.notes].join('／')].map(q).join(','));
+  downloadBlob(new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), fileName('csv').replace('_平面圖_', '_設備清單_'));
+  toast('✓ 已下載 <b>設備清單</b>（可用 Excel 打開）');
+}
+function exportProject() {
+  const data = JSON.stringify({ app: 'storeplan', v: 1, meta: S.meta, room: S.room, items: S.items, custom: S.custom, set: S.set }, null, 1);
+  downloadBlob(new Blob([data], { type: 'application/json' }), fileName('json').replace('_平面圖_', '_專案檔_'));
+  DIRTY = false;
+  toast('✓ 已下載 <b>專案檔</b>，下次用「📂 檔案 → 開啟專案檔」就能接著改');
+}
+window.addEventListener('afterprint', () => { $('#printArea').innerHTML = ''; });
+
+/* ================= 彈窗 ================= */
+function modal(html, onMount) {
+  const m = document.createElement('div'); m.className = 'mask';
+  m.innerHTML = `<div class="modal">${html}</div>`;
+  m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-close]')) m.remove(); });
+  document.body.appendChild(m); onMount?.(m); return m;
+}
+function ask(msg, ok = '確定') {
+  return new Promise(res => {
+    const m = modal(`<div class="mh">確認一下</div><div class="mb">${msg}</div><div class="mf"><button class="btn" data-no>取消</button><button class="btn dark" data-yes>${ok}</button></div>`);
+    m.querySelector('[data-no]').onclick = () => { m.remove(); res(false); };
+    m.querySelector('[data-yes]').onclick = () => { m.remove(); res(true); };
+  });
+}
+let toastT;
+function toast(html) {
+  document.querySelector('.toast')?.remove();
+  const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = html; document.body.appendChild(t);
+  clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 3200);
+}
+
+// 有不是直角的牆角嗎？（決定輸出時預設要不要標角度）
+function hasSlant() { const P = S.room.pts || []; return P.some((_, i) => { const c = cornerInfo(i); return c && Math.abs(c.inner - 90) > .05 && Math.abs(c.inner - 270) > .05; }); }
+function openExport() {
+  modal(`<div class="mh">⬇ 輸出<b>圖面</b></div>
+    <div class="mb">
+      <label class="check"><input type="checkbox" id="oList" checked> 圖面下方附上設備清單</label>
+      <label class="check"><input type="checkbox" id="oAng" ${hasSlant() ? 'checked' : ''}> 標出牆角角度（有斜牆時建議勾）</label>
+      <label class="check"><input type="checkbox" id="oWarn"> 標出走道太窄、重疊的地方（自己檢查用）</label>
+      <div class="bigbtns">
+        <button class="bigbtn hl" data-x="png"><b>🖼 下載 PNG 圖檔</b><span>傳 LINE 給設計師、工班最方便</span></button>
+        <button class="bigbtn" data-x="pdf"><b>🖨 列印／存成 PDF</b><span>印出來現場討論用</span></button>
+        <button class="bigbtn" data-x="csv"><b>📋 下載設備清單</b><span>Excel 可開，拿去詢價</span></button>
+        <button class="bigbtn" data-x="json"><b>💾 下載專案檔</b><span>下次開回來繼續改</span></button>
+      </div>
+      <div class="fld" style="margin:0"><label>列印紙張</label><select class="inp" id="oPaper"><option value="A4">A4 橫式</option><option value="A3">A3 橫式</option></select></div>
+      <p class="hint">⚠️ 這個工具<b>不會幫你存檔</b>，關掉網頁就沒了。還想再改的話，記得下載「專案檔」。<br>存 PDF：列印視窗的「目的地」選「另存為 PDF」。</p>
+    </div>
+    <div class="mf"><button class="btn" data-close>關閉</button></div>`, m => {
+    m.addEventListener('click', e => {
+      const b = e.target.closest('[data-x]'); if (!b) return;
+      const opt = { list: m.querySelector('#oList').checked, warn: m.querySelector('#oWarn').checked, angles: m.querySelector('#oAng').checked, paper: m.querySelector('#oPaper').value };
+      const x = b.dataset.x;
+      if (x === 'png') exportPNG(opt);
+      if (x === 'pdf') { m.remove(); exportPDF(opt); }
+      if (x === 'csv') exportCSV();
+      if (x === 'json') exportProject();
+    });
+  });
+}
+
+function openFile(first) {
+  modal(`<div class="mh">${first ? '歡迎使用<b>店面平面圖小幫手</b>' : '📂 檔案'}</div>
+    <div class="mb">
+      ${first ? `<div class="howto">
+        <div><i>1</i><div><b>拉線畫出店面的牆</b><p>按住滑鼠拉出一面牆，接著拉下一面，拉回起點就圍起來；再點牆上的數字改成量到的長度。</p></div></div>
+        <div><i>2</i><div><b>點設備、拖拉擺好</b><p>「設備」分頁點一下就加進來，拖到位置；尺寸改成你量到的。</p></div></div>
+        <div><i>3</i><div><b>輸出圖面</b><p>右上角「輸出圖面」下載 PNG 傳給設計師或工班。</p></div></div>
+      </div>` : ''}
+      <div class="bigbtns">
+        <button class="bigbtn hl" data-f="sample"><b>👀 看範例</b><span>一間小吃店的平面圖</span></button>
+        <button class="bigbtn" data-f="new"><b>✏️ 從空白開始</b><span>直接拉線畫出你的店</span></button>
+        <button class="bigbtn" data-f="open"><b>📂 開啟專案檔</b><span>之前下載的 .json 檔</span></button>
+        ${first ? '' : '<button class="bigbtn" data-f="save"><b>💾 下載專案檔</b><span>存下目前的圖，下次接著改</span></button>'}
+      </div>
+      <p class="hint">🔒 你畫的圖<b>只在你的瀏覽器裡</b>，不會上傳到任何地方。關掉網頁前，要再改的話記得下載專案檔。</p>
+    </div>
+    ${first ? '' : '<div class="mf"><button class="btn" data-close>關閉</button></div>'}`, m => {
+    m.addEventListener('click', async e => {
+      const b = e.target.closest('[data-f]'); if (!b) return;
+      const f = b.dataset.f;
+      if (f === 'save') { exportProject(); return; }
+      if ((f === 'sample' || f === 'new' || f === 'open') && DIRTY && !first) {
+        m.style.display = 'none';
+        const ok = await ask('目前的圖還沒下載專案檔，換掉就找不回來了。<br>確定要繼續嗎？', '確定換掉');
+        if (!ok) { m.style.display = ''; return; }
+      }
+      m.remove();
+      if (f === 'sample') loadProject(sampleProject());
+      if (f === 'new') { loadProject(blankProject(600, 400)); showTab('room'); startWall(); }
+      if (f === 'open') $('#fileIn').click();
+    });
+  });
+}
+$('#fileIn').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const o = JSON.parse(await f.text());
+    if (o.app !== 'storeplan' || !o.room || !Array.isArray(o.items)) throw new Error('格式不對');
+    loadProject(o); toast('✓ 已開啟 <b>' + esc(o.meta?.name || f.name) + '</b>');
+  } catch (err) { toast('這個檔案不是平面圖專案檔，打不開'); }
+});
+function loadProject(o) {
+  const base = blankProject(600, 400);
+  S = { ...base, ...o, meta: { ...base.meta, ...(o.meta || {}) }, set: { ...base.set, ...(o.set || {}) }, custom: o.custom || [] };
+  if (!S.room.pts) setRoomFromPts(segsToPts(S.room)); // 舊版專案檔
+  SEL = []; UNDO = []; REDO = []; DIRTY = false; WP = [];
+  renderRoom(); renderLib(); renderMark(); fitView(); renderProps();
+}
+
+/* ================= 範例：小吃店 844 × 390 ================= */
+function sampleProject() {
+  const p = blankProject(844, 390);
+  p.meta = { name: '範例小吃店', addr: '一樓店面・前面鐵捲門', author: '', note: '' };
+  const find = n => LIB.findIndex(l => l[1] === n);
+  const put = (name, l, t, rot = 0, extra = {}) => {
+    const [cat, nm, w, d, sym, ex = {}] = LIB[find(name)];
+    const aw = rot % 180 ? d : w, ad = rot % 180 ? w : d;
+    p.items.push({ id: uid(), t: 'equip', cat, name: nm, w, d, sym, rot, note: '', cx: l + aw / 2, cy: t + ad / 2, ...(ex.round ? { round: 1 } : {}), ...(ex.over ? { over: 1 } : {}), ...(ex.floor ? { floor: 1 } : {}), ...extra });
+  };
+  // 內場靠上牆一排
+  put('油炸機（雙槽）', 0, 0, 0, { note: '220V' });
+  put('平板煎台', 60, 0);
+  put('四口爐', 150, 0);
+  put('工作台冰箱 5尺', 230, 0);
+  put('雙槽水槽', 380, 0);
+  put('掀門式洗碗機', 500, 0, 0, { note: '220V' });
+  put('殘渣台', 565, 0);
+  put('層架', 655, 0);
+  put('柱子', 804, 0);
+  put('排油煙罩（在上方）', 0, 0);
+  // 中島出餐與收銀
+  put('出餐台', 150, 160);
+  put('蛋糕／冷藏展示櫃', 300, 165);
+  put('POS 收銀台', 0, 175, 90);
+  put('地板排水溝', 150, 100);
+  // 外場座位
+  for (const l of [120, 300, 480]) { put('四人桌', l, 315); put('單椅', l + 8, 268); put('單椅', l + 67, 268); }
+  put('二人桌', 690, 170); put('二人桌', 690, 280);
+  // 門窗（先放約略位置，載入後會貼到牆上）
+  p.items.push({ id: uid(), t: 'open', ot: 'shutter', name: '鐵捲門', w: 300, d: 15, cx: 844, cy: 195, rot: 0 });
+  p.items.push({ id: uid(), t: 'open', ot: 'door', name: '單開門', w: 80, d: 15, cx: 0, cy: 340, rot: 0, flip: 0, out: 0 });
+  p.items.push({ id: uid(), t: 'open', ot: 'window', name: '窗戶', w: 180, d: 15, cx: 390, cy: 390, rot: 0 });
+  // 水電孔位
+  const mk = (k, x, y, note = '') => { const m = MARKS.find(z => z[0] === k); p.items.push({ id: uid(), t: 'mark', mk: k, name: m[1], w: 22, d: 22, cx: x, cy: y, rot: 0, note }); };
+  mk('water', 420, 12, '水槽龍頭'); mk('drain', 460, 48); mk('gas', 190, 12, '四口爐用'); mk('v220', 30, 12, '炸爐 220V');
+  mk('fan', 120, 50, '排煙管出口'); mk('v110', 30, 300, '收銀機'); mk('drain', 532, 48, '洗碗機');
+  // 區域文字
+  const tx = (text, x, y, fs) => { const it = { id: uid(), t: 'text', text, fs, rot: 0, cx: x, cy: y }; sizeText(it); p.items.push(it); };
+  tx('內場', 560, 120, 26); tx('外場用餐區', 560, 235, 26);
+  // 載入後再把門窗貼牆
+  setTimeout(() => { reSnapOpens(); render(); }, 0);
+  return p;
+}
+
+/* ================= 分頁、工具列 ================= */
+function showTab(k) {
+  TAB = k;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === k));
+  for (const p of ['room', 'lib', 'mark', 'prop']) $('#pane-' + p).hidden = p !== k;
+  render();
+}
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab); });
+
+function setMode(m, keep) {
+  if (MODE === 'wall' && m !== 'wall') { WP = []; WD = null; }
+  MODE = m; DIMA = null; DIMP = null;
+  $('#bSelect').classList.toggle('on', m === 'select'); $('#bDim').classList.toggle('on', m === 'dim'); $('#bWall').classList.toggle('on', m === 'wall');
+  $('#modeHint').hidden = m === 'select';
+  $('#bWallUndo').hidden = !(m === 'wall' && WP.length);
+  if (m === 'wall') {
+    $('#modeTxt').innerHTML = !WP.length ? '✏️ 在畫面上<b>按住滑鼠、拉出第一面牆</b>，放開就畫好（Esc 取消）'
+      : WP.length < 3 ? `✏️ 很好！從<b>綠色點</b>接著拉下一面牆（已畫 ${WP.length - 1} 面）`
+      : `✏️ 已畫 ${WP.length - 1} 面，<b>拉回起點</b>就圍起來，或按「完成」自動接回`;
+    $('#bDimDone').textContent = '完成';
+  } else if (m === 'dim') {
+    $('#modeTxt').innerHTML = '📏 點<b>第一個點</b>，再點<b>第二個點</b>就會標出距離';
+    $('#bDimDone').textContent = '完成';
+  }
+  svg.classList.toggle('dim', m === 'dim' || m === 'wall');
+  if (m !== 'select' && !keep) { SEL = []; renderProps(); }
+  render();
+}
+$('#bSelect').onclick = () => setMode('select');
+$('#bDim').onclick = () => setMode(MODE === 'dim' ? 'select' : 'dim');
+$('#bDimDone').onclick = () => MODE === 'wall' ? finishWall() : setMode('select');
+$('#bWallUndo').onclick = () => { WP.pop(); setMode('wall', true); };
+$('#bWall').onclick = () => MODE === 'wall' ? cancelWall() : (showTab('room'), startWall());
+$('#bUndo').onclick = undo; $('#bRedo').onclick = redo;
+$('#bFit').onclick = fitView;
+$('#bZoomIn').onclick = () => { const r = svg.getBoundingClientRect(); zoomAt(1.25, r.width / 2, r.height / 2); };
+$('#bZoomOut').onclick = () => { const r = svg.getBoundingClientRect(); zoomAt(.8, r.width / 2, r.height / 2); };
+for (const [id, k] of [['tGrid', 'grid'], ['tSnap', 'snap'], ['tDims', 'dims'], ['tAisle', 'aisle']]) $('#' + id).onclick = () => { S.set[k] = !S.set[k]; render(); };
+$('#bExport').onclick = openExport;
+$('#bFile').onclick = () => openFile(false);
+// 清空：牆面留著，其他全部清掉（可以按復原救回來）
+$('#bClear').onclick = async () => {
+  if (!S.items.length) { toast('圖面已經是空的了'); return; }
+  if (!await ask('要把<b>設備、門窗、孔位、文字、尺寸線</b>全部清掉嗎？<br>牆面會保留。清錯了可以按「↶ 復原」救回來。', '全部清空')) return;
+  SEL = []; commit(() => { S.items = []; });
+  toast('✓ 已清空，牆面保留。按 <b>↶ 復原</b> 可以救回來');
+};
+window.addEventListener('beforeunload', e => { if (DIRTY) { e.preventDefault(); e.returnValue = ''; } });
+
+/* 平板：右側面板搬到左邊第 4 個分頁；手機：只能看 */
+const mqTab = window.matchMedia('(max-width:1099px)'), mqMob = window.matchMedia('(max-width:767px)');
+function layout() {
+  const rp = $('#rpane');
+  if (mqTab.matches) { if (rp.parentElement.id !== 'pane-prop') $('#pane-prop').appendChild(rp); rp.style.padding = '0'; }
+  else { if (rp.parentElement.id !== 'sideR') $('#sideR').appendChild(rp); rp.style.padding = ''; if ($('#pane-prop').hidden === false) showTab('room'); }
+  VIEWONLY = mqMob.matches;
+  if (VIEWONLY) { SEL = []; setMode('select'); }
+  setTimeout(fitView, 30);
+}
+mqTab.addEventListener('change', layout); mqMob.addEventListener('change', layout);
+new ResizeObserver(() => render()).observe($('#stage'));
+
+/* ================= 啟動 ================= */
+if (window.self !== window.top) document.body.classList.add('embed');
+renderRoom(); renderLib(); renderMark(); renderProps();
+layout();
+// 網址後面加 #sample 會直接打開範例（做截圖、教學影片用）
+setTimeout(() => { fitView(); if (location.hash === '#sample') loadProject(sampleProject()); else openFile(true); }, 60);
+</script>
+</body>
+</html>
