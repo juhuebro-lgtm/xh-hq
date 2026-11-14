@@ -1,6 +1,6 @@
 // 總部工作台：讓電腦／手機可以「安裝」成 App。
 // 一律先抓網路上的最新版（重新部署後打開就是新的），只有沒網路時才用上次存的。
-const CACHE = "xh-hq-v1";
+const CACHE = "xh-hq-v2";
 const SHELL = ["./", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", e => {
