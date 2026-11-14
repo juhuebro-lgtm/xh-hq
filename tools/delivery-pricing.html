@@ -128,7 +128,7 @@ footer { text-align: center; color: var(--text3); font-size: .78rem; padding: 0 
 
 /* ---- 手機：表格改卡片 ---- */
 @media (max-width: 860px) {
-  .idea, .settings { grid-template-columns: 1fr; }
+  .idea, .settings { grid-template-columns: minmax(0, 1fr); }
   .stats { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 760px) {
