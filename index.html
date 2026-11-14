@@ -144,6 +144,59 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding-top:10px}
 @media (prefers-reduced-motion:reduce){#quote{transition:none}.qbar.run{animation:none}}@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .rv{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*45ms)}
 @media (prefers-reduced-motion:reduce){.rv{animation:none}*{transition:none!important}}
+
+/* ===== 標題與內容分層（2026-11-14） ===== */
+.it b,.qk b,.me b,.crumb b{font-family:var(--fb)}
+.it b{font-size:14px;font-weight:600;letter-spacing:0}
+.qk b{font-size:14px;font-weight:600}
+.lbl{display:flex;align-items:center;gap:10px;font:700 18px/1.3 var(--fh);letter-spacing:.06em;color:var(--ink);margin:18px 2px 0}
+.lbl::before{content:"";width:4px;height:18px;border-radius:2px;background:var(--h)}
+/* 左下角總部專用：拿掉白框，改成細線下的一行小字 */
+.me{background:none;border:0;border-top:1px solid #E4DFD8;border-radius:0;padding:14px 6px 2px}
+.me .av{background:none;box-shadow:none;width:auto;height:auto;color:var(--h)}
+.me b{font-size:12.5px;letter-spacing:.08em;color:var(--h)}
+/* 店家欄位標頭：不用大色塊，只留細色條＋小色章，顏色壓深 */
+.col{border:1px solid var(--line);box-shadow:0 1px 2px rgba(23,20,15,.04)}
+.col{--ad:color-mix(in srgb,var(--a) 82%,#000)}
+.col header{background:#fff;color:var(--ink);border-bottom:1px solid var(--line2);padding:16px 18px 14px}
+.col header::before{display:block;height:3px;background:var(--ad)}
+.col h3{font:700 19px/1.2 var(--fh);letter-spacing:.12em;color:var(--ad)}
+.col header small{color:var(--muted)}
+.ch-ic{background:var(--ad);color:#fff;box-shadow:none;border-radius:9px}
+.col-b{padding:8px;background:#fff}
+.col-b .item+.item{border-top:1px solid var(--line2);border-radius:0}
+.col-b .item:hover{border-radius:10px}
+.ph h2{font:700 17px/1.3 var(--fh);letter-spacing:.06em}
+.ph h2 .en{font-family:var(--fb);letter-spacing:0}
+.hero h1{font-family:var(--fh)}
+/* 小分類：拿掉外框，標題直接在頁面上 */
+.smalls{row-gap:30px;column-gap:28px}
+.panel{background:none;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.panel+.panel,.smalls+.panel{margin-top:14px}
+.ph-ic{width:auto;height:auto;background:none;box-shadow:none;color:var(--h)}
+.ph h2 .en{font:500 10.5px/1 var(--fb);letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.packs{padding:12px 0 0}
+.pack{background:#fff}
+.ph .cnt{white-space:nowrap;flex:none}
+/* B 分組清單（標題在外、項目收在一條白色清單裡） */
+.ph{padding:0 6px 8px;border:0;align-items:baseline;gap:8px}
+.ph-ic{display:none}
+.ph>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ph h2{font:700 17px/1.3 var(--fh);letter-spacing:.1em;color:var(--h)}
+.ph p{margin:0;font-size:12px;color:var(--faint)}
+.ph .cnt{background:none;padding:0;font:500 12px var(--fb);color:var(--faint)}
+.ph .cnt::after{content:" 項"}
+.list{background:#fff;border:1px solid var(--line2);border-radius:14px;box-shadow:0 1px 2px rgba(23,20,15,.04);padding:4px;gap:0;grid-template-columns:minmax(0,1fr)}
+.list .item{min-width:0;border-radius:10px}
+.list .item+.item{border-top:0;border-radius:10px}
+.list .item+.item::before{content:"";position:absolute;left:54px;right:12px;top:0;height:1px;background:var(--line2)}
+.list .item:hover::before,.list .item:hover+.item::before{opacity:0}
+.wide .list .item+.item::before{display:none}
+.wide .list{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:1180px){.wide .list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){.wide .list{grid-template-columns:minmax(0,1fr)}.smalls{row-gap:26px}}
+
+@media (max-width:900px){.col h3{font-size:19px}.lbl{font-size:17px}}
 </style></head><body>
 <div class="app">
 <aside class="side"><div class="brand"><span class="seal" id="logoSlot">宣</span><div><b>宣澔餐飲</b><small>Head Office</small></div></div>
