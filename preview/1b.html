@@ -1,7 +1,7 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>總部工作台</title>
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#1A1613">
+<meta name="theme-color" content="#F6F5F2">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -21,7 +21,7 @@
 <style>
 
 :root{--bg:#F6F5F2;--panel:#fff;--ink:#17140F;--ink2:#3D3832;--muted:#77706A;--faint:#ABA49C;--line:#E8E5E0;--line2:#F2F0EC;--hover:#FAF9F7;
---side:#1A1613;--side2:#25201B;--side-ink:#EDE7DF;--side-mut:#9A8F83}
+--side:#F1EEE9;--side2:#E7E2DB;--side-ink:#2A241E;--side-mut:#9A9087}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:70px}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Inter","Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}.ic{flex:none;display:block}
@@ -29,18 +29,18 @@ button{font-family:inherit}
 .sb{--a:#E8772E;--a-soft:#FDF0E6;--a-mid:#F6C9A6}.zh{--a:#3F6496;--a-soft:#ECF2F9;--a-mid:#B8CBE3}.hq{--a:#7A5434;--a-soft:#F4EEE8;--a-mid:#D8C3AE}
 .app{display:grid;grid-template-columns:252px minmax(0,1fr);min-height:100vh}
 /* 側欄 */
-.side{position:sticky;top:0;height:100vh;background:var(--side);color:var(--side-ink);padding:18px 12px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
-.brand{display:flex;align-items:center;gap:11px;padding:6px 8px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
+.side{position:sticky;top:0;height:100vh;background:var(--side);border-right:1px solid #E4DFD8;color:var(--side-ink);padding:18px 12px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:11px;padding:6px 8px 14px;border-bottom:1px solid #E2DDD5}
 .seal,.m-seal{width:34px;height:34px;border-radius:9px;background:linear-gradient(145deg,#C98A54,#7A4A22);color:#fff;display:grid;place-items:center;font:600 15px "Noto Sans TC";box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 12px -4px rgba(201,138,84,.6)}
 .brand b{display:block;font-size:14.5px;font-weight:600;letter-spacing:.02em}.brand small{display:block;font:500 11px "Inter";color:var(--side-mut);letter-spacing:.14em;text-transform:uppercase}
 .nav{display:grid;gap:1px}
 .ng{font:600 10.5px "Inter","Noto Sans TC";letter-spacing:.14em;color:var(--side-mut);padding:14px 10px 6px}
-.nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;color:#D6CEC4;font-size:13.5px;transition:background .15s,color .15s}
-.nav a .ic{color:var(--side-mut)}.nav a:hover{background:var(--side2);color:#fff}
+.nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;color:#4A423A;font-size:13.5px;transition:background .15s,color .15s}
+.nav a .ic{color:var(--side-mut)}.nav a:hover{background:var(--side2);color:#17140F}
 .nav em{margin-left:auto;font:500 11px "Inter";font-style:normal;color:var(--side-mut)}
 .nd{width:8px;height:8px;border-radius:3px;background:var(--a);margin:0 4px}
-.me{margin-top:auto;display:flex;gap:10px;align-items:center;padding:12px;border-radius:10px;background:var(--side2)}
-.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(229,72,77,.16);color:#FF8A8D}
+.me{margin-top:auto;display:flex;gap:10px;align-items:center;padding:12px;border-radius:10px;background:#fff;border:1px solid #E4DFD8}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#FDECEC;color:#C8333A}
 .me b{display:block;font-size:13px}.me small{display:block;font-size:11px;color:var(--side-mut)}
 /* 上方列 */
 .top{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;height:54px;padding:0 32px;background:rgba(246,245,242,.85);backdrop-filter:saturate(1.6) blur(12px);-webkit-backdrop-filter:saturate(1.6) blur(12px);border-bottom:1px solid var(--line)}
@@ -52,30 +52,30 @@ button{font-family:inherit}
 .lbl{font:600 11.5px "Inter","Noto Sans TC";letter-spacing:.12em;color:var(--muted);margin:10px 2px 0}
 .quick{display:grid;gap:18px}
 /* 頁首鼓勵區 */
-.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;padding:26px 28px;border-radius:16px;overflow:hidden;color:#fff;
- background:radial-gradient(120% 140% at 100% 0%,rgba(148,175,210,.35),transparent 55%),radial-gradient(90% 120% at 0% 100%,rgba(232,119,46,.30),transparent 60%),linear-gradient(135deg,#2A211A,#1A1613 60%,#1F2530);box-shadow:0 18px 40px -24px rgba(26,22,19,.6)}
-.hero::before{content:"";position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(90deg,#000,transparent 75%);-webkit-mask-image:linear-gradient(90deg,#000,transparent 75%);pointer-events:none}
+.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;padding:28px 30px;border-radius:16px;overflow:hidden;color:var(--ink);border:1px solid #EDE6DC;
+ background:radial-gradient(70% 120% at 100% 0%,rgba(148,175,210,.32),transparent 60%),radial-gradient(60% 120% at 0% 100%,rgba(232,119,46,.18),transparent 62%),linear-gradient(135deg,#FFFDF9,#FBF6EF);box-shadow:0 1px 2px rgba(23,20,15,.04),0 16px 36px -26px rgba(122,84,52,.45)}
+.hero::before{content:"";position:absolute;inset:0;opacity:.7;background-image:linear-gradient(rgba(122,84,52,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(122,84,52,.05) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(90deg,#000,transparent 75%);-webkit-mask-image:linear-gradient(90deg,#000,transparent 75%);pointer-events:none}
 .hl,.hr{position:relative}
-.eyebrow{display:flex;align-items:center;gap:6px;font-size:13px;color:#E9C9A8;letter-spacing:.04em}
-.sun{color:#F2A35E}
-.hero h1{margin:14px 0 18px;font-size:clamp(21px,2.6vw,29px);line-height:1.45;font-weight:600;letter-spacing:.01em;min-height:2.9em;max-width:640px}
+.eyebrow{display:flex;align-items:center;gap:6px;font-size:13px;color:#A0643A;letter-spacing:.04em;font-weight:500}
+.sun{color:#E8772E}
+.hero h1{margin:14px 0 4px;color:#1F1913;font-size:clamp(21px,2.6vw,29px);line-height:1.45;font-weight:600;letter-spacing:.01em;min-height:2.9em;max-width:640px}
 .qctl{display:flex;align-items:center;gap:12px}
 .qn{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#fff;font-size:12.5px;padding:5px 12px;border-radius:999px;cursor:pointer;transition:background .2s}
 .qn:hover{background:rgba(255,255,255,.14)}
 .qtrack{width:120px;height:2px;border-radius:2px;background:rgba(255,255,255,.15);overflow:hidden}
 .qbar{display:block;height:100%;background:#F2A35E}
-.hr{align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:18px 20px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(6px)}
-.hr small{font-size:11.5px;color:#BFB3A6;letter-spacing:.12em}
-.big{font-size:17px;color:#fff}.big b{font:700 30px "Inter";margin:0 2px;vertical-align:-3px}
-.mtrack{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.hr{align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:18px 20px;border-radius:12px;background:rgba(255,255,255,.75);border:1px solid #EDE6DC;box-shadow:0 1px 2px rgba(23,20,15,.04)}
+.hr small{font-size:11.5px;color:var(--muted);letter-spacing:.12em}
+.big{font-size:17px;color:var(--ink)}.big b{font:700 30px "Inter";margin:0 2px;vertical-align:-3px}
+.mtrack{height:6px;border-radius:3px;background:#EFEAE3;overflow:hidden}
 .mbar{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#E8772E,#94AFD2);transform-origin:left;transform:scaleX(0);transition:transform 1.2s cubic-bezier(.2,.7,.2,1) .3s}
-.hr p{margin:0;font-size:12.5px;color:#BFB3A6}.hr p b{color:#fff;font:600 13px "Inter"}
+.hr p{margin:0;font-size:12.5px;color:var(--muted)}.hr p b{color:var(--ink);font:600 13px "Inter"}
 .chips{display:none}
 /* 快速開啟 */
 .qgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .qk{position:relative;display:grid;gap:2px;padding:16px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 1px 2px rgba(23,20,15,.04);transition:transform .2s,box-shadow .2s,border-color .2s}
 .qk:hover{transform:translateY(-2px);box-shadow:0 12px 24px -14px rgba(23,20,15,.25);border-color:#DCD6CE}
-.qi{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#3B3027,#1A1613);margin-bottom:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}
+.qi{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#B98258,#7A5434);margin-bottom:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 10px -4px rgba(122,84,52,.5)}
 .qk b{font-size:14.5px;font-weight:600}.qk small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .qa{position:absolute;top:14px;right:14px;color:var(--faint);transition:color .2s,transform .2s}.qk:hover .qa{color:var(--ink);transform:translate(2px,-2px)}
 /* 門市三欄 */
@@ -114,7 +114,7 @@ button{font-family:inherit}
 .pack::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--a)}
 .pk-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .pk-h b{display:block;font-size:13.5px;font-weight:600}.pk-h small{display:block;font-size:12px;color:var(--muted)}
-.copy{flex:none;font-size:12px;font-weight:500;padding:6px 11px;border-radius:7px;border:0;background:var(--ink);color:#fff;cursor:pointer;transition:opacity .15s}
+.copy{flex:none;font-size:12px;font-weight:500;padding:6px 11px;border-radius:7px;border:0;background:var(--a);color:#fff;cursor:pointer;transition:opacity .15s}
 .copy:hover{opacity:.85}.copy.done{background:#16A34A}
 .pack ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .pack li span{display:block;font-size:12.5px;font-weight:500}
@@ -126,7 +126,7 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding-top:10px}
 @media (max-width:900px){
  .app{display:block}.side{display:none}.m-seal{display:grid}
  .top{padding:0 16px}.c1{display:none}.content{padding:18px 16px 48px;gap:16px}
- .hero{grid-template-columns:1fr;padding:22px 20px;gap:16px}.hero h1{font-size:21px;min-height:3em;margin:12px 0 14px}
+ .hero{grid-template-columns:1fr;padding:22px 20px;gap:14px}.hero h1{font-size:21px;min-height:3em;margin:12px 0 0}
  .hr{padding:12px 14px;gap:6px}.hr small{display:none}.big{font-size:15px}.big b{font-size:22px}
  .chips{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
  .chips a{flex:none;display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--line);background:#fff;border-radius:999px;font-size:12.5px;color:var(--ink2)}
@@ -150,8 +150,7 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding-top:10px}
 <div class="content">
 <section class="hero rv" style="--i:0">
  <div class="hl"><div class="eyebrow"><span class="sun"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span><span data-greet>你好</span>・<span data-day></span></div>
- <h1 id="quote" aria-live="polite">今天也辛苦了。</h1>
- <div class="qctl"><button type="button" id="qNext" class="qn">換一句</button><span class="qtrack"><span class="qbar" id="qBar"></span></span></div></div>
+ <h1 id="quote" aria-live="polite">今天也辛苦了。</h1></div>
  <div class="hr"><small>本月進度</small><div class="big"><span data-mon></span> 月・第 <b data-mday></b> 天</div><div class="mtrack"><span class="mbar" data-mbar></span></div><p>距離月底結算還有 <b data-mleft></b> 天</p></div>
 </section>
 <nav class="chips rv" style="--i:1"><a href="#st-sb"><span class="nd sb"></span>涮吧</a><a href="#st-zh"><span class="nd zh"></span>朱輝哥</a><a href="#st-hq"><span class="nd hq"></span>兩店共用</a><a href="#s0"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>總部管理</a><a href="#s1"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z"/></svg>開店工具</a><a href="#s2"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M8 6h8"/><path d="M16 14v4"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>營運試算</a><a href="#s3"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>員工與打卡</a><a href="#s4"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>使用說明</a><a href="#s5"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>試算表（後台）</a><a href="#s6"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>給門市的網址</a></nav>
@@ -197,7 +196,7 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding-top:10px}
 var i=Math.floor(Math.random()*Q.length),t;
 function show(){el.classList.remove("in");setTimeout(function(){el.textContent=Q[i];el.classList.add("in");if(bar){bar.classList.remove("run");void bar.offsetWidth;bar.classList.add("run")}},260)}
 function next(){i=(i+1)%Q.length;show()}
-function start(){clearInterval(t);t=setInterval(function(){if(!document.hidden)next()},9000)}
+function start(){clearInterval(t);t=setInterval(function(){if(!document.hidden)next()},8000)}
 el.textContent=Q[i];el.classList.add("in");if(bar)bar.classList.add("run");start();
 if(nx)nx.addEventListener("click",function(){next();start()});
 })();
